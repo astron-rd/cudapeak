@@ -38,12 +38,12 @@ double run_kernel(
     cudaEventCreate(&stop);
 
     // Warmup
-    compute_sp_v1<<<gridDim, blockDim, 0, stream>>>(ptr);
+    ((void (*)(float *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
 
     // Benchmark
     cudaEventRecord(start, stream);
     for (int i = 0; i < NR_ITERATIONS; i++) {
-        compute_sp_v1<<<gridDim, blockDim, 0, stream>>>(ptr);
+        ((void (*)(float *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
     }
     cudaEventRecord(stop, stream);
 
