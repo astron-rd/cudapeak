@@ -13,7 +13,7 @@
 #define NR_ITERATIONS 10
 
 // Number of times to run each benchmark
-#define NR_BENCHMARKS 1
+#define NR_BENCHMARKS 10
 
 cudaStream_t stream;
 cudaDeviceProp deviceProperties;
@@ -27,8 +27,15 @@ void report(string name, double milliseconds, double gflops, double gbytes) {
     if (gflops != 0)
         cout << ", " << gflops / milliseconds / 1e6 << " TFLOPS";
     if (gbytes != 0)
-        cout << ", " << gbytes / milliseconds / 1e3 << " GB/s";
+        cout << ", " << gbytes / milliseconds << " GB/s";
     cout << endl;
+}
+
+unsigned roundToPowOf2(unsigned number) {
+    double logd = log(number) / log(2);
+    logd = floor(logd);
+
+    return (unsigned) pow(2, (int) logd);
 }
 
 double run_kernel(
@@ -64,8 +71,8 @@ void run_compute_sp() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    uint64_t nr_flops_block = 8192 * 2 * 1000;
-    double nr_gflops_total = ((float) nr_flops_block * multiProcessorCount * maxThreadsPerBlock) / 1e3f;
+    uint64_t nr_flops_block = 8192 * 2 * 1024;
+    double nr_gflops_total = ((float) nr_flops_block * multiProcessorCount * maxThreadsPerBlock) / 1e6f;
     double nr_gybtes_total = 0;
 
     // Kernel dimensions
@@ -89,17 +96,19 @@ void run_mem_global() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    uint64_t nr_bytes_block = 0;
-    double nr_gbytes_total = ((float) nr_bytes_block * multiProcessorCount * maxThreadsPerBlock) / 1e3f;
+    unsigned fetchPerBlock = 16;
+    int maxItems = deviceProperties.totalGlobalMem / sizeof(float) / 2;
+    int numItems = roundToPowOf2(maxItems);
+    double nr_gbytes_total = (float) numItems * sizeof(float) / 1e6;
     double nr_gflops_total = 0;
 
     // Kernel dimensions
-    dim3 gridDim(multiProcessorCount);
+    dim3 gridDim(numItems / (fetchPerBlock * maxThreadsPerBlock));
     dim3 blockDim(maxThreadsPerBlock);
 
     // Kernel data
     float *ptr;
-    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+    cudaMalloc(&ptr, numItems * sizeof(float));
 
     // Run kernel
     double milliseconds;
@@ -124,7 +133,7 @@ int main() {
     // Run benchmarks
     cuProfilerStart();
     for (int i = 0; i < NR_BENCHMARKS; i++) {
-        run_compute_sp();
+        //run_compute_sp();
         run_mem_global();
     }
     cuProfilerStop();
