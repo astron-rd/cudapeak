@@ -1,36 +1,35 @@
 #include "cuda.h"
 
-#define CMUL_4(x, y)    x = x * y;     y = y * x;     x = x * y;     y = y * x;
-#define CMUL_16(x, y)   CMUL_4(x, y);  CMUL_4(x, y);  CMUL_4(x, y);  CMUL_4(x, y);
-#define CMUL_64(x, y)   CMUL_16(x, y); CMUL_16(x, y); CMUL_16(x, y); CMUL_16(x, y);
+#define FMA_1(x, y)  asm("fma.rn.f32 %0, %1, %2, %3;" : "=f"(x) : "f"(x), "f"(y), "f"(x)); \
+                     asm("fma.rn.f32 %0, %1, %2, %3;" : "=f"(y) : "f"(y), "f"(x), "f"(y));
+#define FMA_4(x, y)  FMA_1(x, y)  FMA_1(x, y)  FMA_1(x, y)  FMA_1(x,y)
+#define FMA_16(x, y) FMA_4(x, y)  FMA_4(x, y)  FMA_4(x, y)  FMA_4(x, y)
+#define FMA_64(x, y) FMA_16(x, y) FMA_16(x, y) FMA_16(x, y) FMA_16(x, y)
 
-inline __device__ float2 operator*(float2 a, float2 b) {
-    return make_float2(a.x * b.x - a.y * b.y,
-                       a.x * b.y + a.y * b.x);
-}
-
-__global__ void compute_sp_v1(float *ptr, float a)
+__global__ void compute_sp_v1(float *ptr)
 {
-    float2 x = make_float2(a, 0);
-    float2 y = make_float2(threadIdx.x, 0);
+    float x = threadIdx.x;
+    float y = 0;
 
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
+    for (int i = 0; i < 1024; i++) {
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
 
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
-    CMUL_64(x, y);   CMUL_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+    }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = y.x + y.y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
 }
