@@ -132,10 +132,10 @@ void run_compute_sp_ai() {
     report("compute_sp_ai_v2", milliseconds, nr_gflops_total*4, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v3, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v3", milliseconds, nr_gflops_total*6, nr_gbytes_total);
+    report("compute_sp_ai_v3", milliseconds, nr_gflops_total*8, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v4, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v4", milliseconds, nr_gflops_total*8, nr_gbytes_total);
+    report("compute_sp_ai_v4", milliseconds, nr_gflops_total*10, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v5, ptr, gridDim, blockDim);
     report("compute_sp_ai_v5", milliseconds, nr_gflops_total*16, nr_gbytes_total);
