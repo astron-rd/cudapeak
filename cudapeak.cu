@@ -112,8 +112,8 @@ void run_compute_sp_ai() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    double nr_gflops_total = 0;
-    double nr_gbytes_total = 0;
+    double nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024;
+    double nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
 
     // Kernel dimensions
     dim3 gridDim(multiProcessorCount);
@@ -126,39 +126,25 @@ void run_compute_sp_ai() {
     // Run kernels
     double milliseconds;
     milliseconds = run_kernel((void *) &compute_sp_ai_v1, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v1", milliseconds, nr_gflops_total*2, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v2, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 4;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v2", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v2", milliseconds, nr_gflops_total*4, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v3, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 6;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v3", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v3", milliseconds, nr_gflops_total*6, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v4, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 8;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v4", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v4", milliseconds, nr_gflops_total*8, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v5, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 16;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v5", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v5", milliseconds, nr_gflops_total*16, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v6, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 32;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v6", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v6", milliseconds, nr_gflops_total*32, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v7, ptr, gridDim, blockDim);
-    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 40;
-    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
-    report("compute_sp_ai_v7", milliseconds, nr_gflops_total, nr_gbytes_total);
+    report("compute_sp_ai_v7", milliseconds, nr_gflops_total*40, nr_gbytes_total);
 
     // Free memory
     cudaFree(ptr);
