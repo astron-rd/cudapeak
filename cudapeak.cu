@@ -8,7 +8,10 @@
 
 #include "compute_sp_kernels.cu"
 #include "mem_global_kernels.cu"
-#include "mem_shared_kernels.cu"
+
+
+using namespace std;
+
 
 // Number of times to run each kernel
 #define NR_ITERATIONS 10
@@ -16,10 +19,11 @@
 // Number of times to run each benchmark
 #define NR_BENCHMARKS 1
 
+
+// CUDA variables
 cudaStream_t stream;
 cudaDeviceProp deviceProperties;
 
-using namespace std;
 
 void report(string name, double milliseconds, double gflops, double gbytes) {
     cout << setw(10) << string(name) << ": ";
@@ -36,12 +40,14 @@ void report(string name, double milliseconds, double gflops, double gbytes) {
     cout << endl;
 }
 
+
 unsigned roundToPowOf2(unsigned number) {
     double logd = log(number) / log(2);
     logd = floor(logd);
 
     return (unsigned) pow(2, (int) logd);
 }
+
 
 double run_kernel(
     void *kernel,
@@ -69,6 +75,7 @@ double run_kernel(
     cudaEventElapsedTime(&milliseconds, start, stop);
     return milliseconds / NR_ITERATIONS;
 }
+
 
 void run_compute_sp() {
     // Parameters
@@ -163,36 +170,6 @@ void run_mem_global() {
 }
 
 
-void run_mem_shared() {
-    // Parameters
-    int multiProcessorCount = deviceProperties.multiProcessorCount;
-    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
-
-    // Amount of work performed
-    unsigned blocksPerMultiProcessor = 10;
-    unsigned fetchPerThread = 1024;
-    double nr_gbytes_total = (float) multiProcessorCount * maxThreadsPerBlock * fetchPerThread * sizeof(float) / 1e6;
-    unsigned fudgeFactor = 8;
-    nr_gbytes_total *= fudgeFactor;
-    double nr_gflops_total = 0;
-
-    // Kernel dimensions
-    dim3 gridDim(blocksPerMultiProcessor * multiProcessorCount);
-    dim3 blockDim(maxThreadsPerBlock);
-
-    // Allocate memory
-    float *ptr;
-    cudaMalloc(&ptr, multiProcessorCount * blocksPerMultiProcessor * maxThreadsPerBlock * sizeof(float));
-
-    // Run kernel
-    double milliseconds;
-    milliseconds = run_kernel((void *) &mem_shared_v1, ptr, gridDim, blockDim);
-    report("mem_shared_v1", milliseconds, nr_gflops_total, nr_gbytes_total);
-
-    // Free memory
-    cudaFree(ptr);
-}
-
 int main() {
     // Read device number from envirionment
     char *cstr_deviceNumber = getenv("CUDA_DEVICE");
@@ -211,7 +188,6 @@ int main() {
     for (int i = 0; i < NR_BENCHMARKS; i++) {
         run_compute_sp();
         run_mem_global();
-        run_mem_shared();
     }
     cuProfilerStop();
 
