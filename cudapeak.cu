@@ -196,7 +196,7 @@ int main() {
     // Run benchmarks
     cuProfilerStart();
     for (int i = 0; i < NR_BENCHMARKS; i++) {
-        run_mem_global();
+        //run_mem_global();
         run_compute_sp();
         run_compute_sp_ai();
     }
