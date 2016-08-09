@@ -5,10 +5,9 @@
 __global__ void mem_global_v1(float *ptr) {
     int id = (blockIdx.x * blockDim.x * FETCH_PER_BLOCK) + threadIdx.x;
 
-    asm(".reg .v4.f32 t;");
+    asm(".reg .f32 t;");
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        asm("ld.global.v4.f32 t, [%0];" : : "l"(ptr+id));
-        asm("add.s32 %0, %1, %2;" : "=r"(id) : "r"(id), "r"(blockDim.x));
+        asm("ld.global.f32 t, [%0];" : : "l"(ptr+id));
     }
 
     ptr[(blockIdx.x * blockDim.x) + threadIdx.x] =  (float) id;
