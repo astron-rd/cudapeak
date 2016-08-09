@@ -8,12 +8,13 @@
 
 #include "compute_sp_kernels.cu"
 #include "mem_global_kernels.cu"
+#include "mem_shared_kernels.cu"
 
 // Number of times to run each kernel
 #define NR_ITERATIONS 10
 
 // Number of times to run each benchmark
-#define NR_BENCHMARKS 10
+#define NR_BENCHMARKS 1
 
 cudaStream_t stream;
 cudaDeviceProp deviceProperties;
@@ -23,11 +24,15 @@ using namespace std;
 void report(string name, double milliseconds, double gflops, double gbytes) {
     cout << setw(10) << string(name) << ": ";
     cout << setprecision(2) << fixed;
-    cout << milliseconds << " ms ";
+    cout << milliseconds << " ms";
     if (gflops != 0)
-        cout << ", " << gflops / milliseconds / 1e6 << " TFLOPS";
+        cout << ", " << gflops / milliseconds / 1e3 << " TFLOPS";
     if (gbytes != 0)
         cout << ", " << gbytes / milliseconds << " GB/s";
+    if (gflops != 0 && gbytes != 0) {
+        float arithmetic_intensity = gflops / gbytes;
+        cout << ", " << arithmetic_intensity << " Flop/byte";
+    }
     cout << endl;
 }
 
@@ -71,9 +76,8 @@ void run_compute_sp() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    uint64_t nr_flops_block = 8192 * 2 * 1024;
-    double nr_gflops_total = ((float) nr_flops_block * multiProcessorCount * maxThreadsPerBlock) / 1e6f;
-    double nr_gybtes_total = 0;
+    double nr_gflops_total = 0;
+    double nr_gbytes_total = 0;
 
     // Kernel dimensions
     dim3 gridDim(multiProcessorCount);
@@ -86,7 +90,44 @@ void run_compute_sp() {
     // Run kernel
     double milliseconds;
     milliseconds = run_kernel((void *) &compute_sp_v1, ptr, gridDim, blockDim);
-    report("compute_sp_v1", milliseconds, nr_gflops_total, nr_gybtes_total);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * 2 * 2 * 64 * 1024 * 8 * 8);
+    nr_gbytes_total = 0;
+    report("compute_sp_v1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v2, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v2", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v3, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 4;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v3", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v4, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 6;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v4", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v5, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 8;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v5", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v6, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 16;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v6", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v7, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 32;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v7", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_v8, ptr, gridDim, blockDim);
+    nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 40;
+    nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    report("compute_sp_v8", milliseconds, nr_gflops_total, nr_gbytes_total);
 
     // Free memory
     cudaFree(ptr);
@@ -122,6 +163,36 @@ void run_mem_global() {
 }
 
 
+void run_mem_shared() {
+    // Parameters
+    int multiProcessorCount = deviceProperties.multiProcessorCount;
+    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+
+    // Amount of work performed
+    unsigned blocksPerMultiProcessor = 10;
+    unsigned fetchPerThread = 1024;
+    double nr_gbytes_total = (float) multiProcessorCount * maxThreadsPerBlock * fetchPerThread * sizeof(float) / 1e6;
+    unsigned fudgeFactor = 8;
+    nr_gbytes_total *= fudgeFactor;
+    double nr_gflops_total = 0;
+
+    // Kernel dimensions
+    dim3 gridDim(blocksPerMultiProcessor * multiProcessorCount);
+    dim3 blockDim(maxThreadsPerBlock);
+
+    // Allocate memory
+    float *ptr;
+    cudaMalloc(&ptr, multiProcessorCount * blocksPerMultiProcessor * maxThreadsPerBlock * sizeof(float));
+
+    // Run kernel
+    double milliseconds;
+    milliseconds = run_kernel((void *) &mem_shared_v1, ptr, gridDim, blockDim);
+    report("mem_shared_v1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    // Free memory
+    cudaFree(ptr);
+}
+
 int main() {
     // Read device number from envirionment
     char *cstr_deviceNumber = getenv("CUDA_DEVICE");
@@ -138,8 +209,9 @@ int main() {
     // Run benchmarks
     cuProfilerStart();
     for (int i = 0; i < NR_BENCHMARKS; i++) {
-        //run_compute_sp();
+        run_compute_sp();
         run_mem_global();
+        run_mem_shared();
     }
     cuProfilerStop();
 
