@@ -79,7 +79,7 @@ void run_compute_sp() {
     dim3 gridDim(multiProcessorCount);
     dim3 blockDim(maxThreadsPerBlock);
 
-    // Kernel data
+    // Allocate memory
     float *ptr;
     cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
@@ -87,12 +87,14 @@ void run_compute_sp() {
     double milliseconds;
     milliseconds = run_kernel((void *) &compute_sp_v1, ptr, gridDim, blockDim);
     report("compute_sp_v1", milliseconds, nr_gflops_total, nr_gybtes_total);
+
+    // Free memory
+    cudaFree(ptr);
 }
 
 
 void run_mem_global() {
     // Parameters
-    int multiProcessorCount = deviceProperties.multiProcessorCount;
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
@@ -106,7 +108,7 @@ void run_mem_global() {
     dim3 gridDim(numItems / (fetchPerBlock * maxThreadsPerBlock));
     dim3 blockDim(maxThreadsPerBlock);
 
-    // Kernel data
+    // Allocate memory
     float *ptr;
     cudaMalloc(&ptr, numItems * sizeof(float));
 
@@ -114,6 +116,9 @@ void run_mem_global() {
     double milliseconds;
     milliseconds = run_kernel((void *) &mem_global_v1, ptr, gridDim, blockDim);
     report("mem_global_v1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    // Free memory
+    cudaFree(ptr);
 }
 
 

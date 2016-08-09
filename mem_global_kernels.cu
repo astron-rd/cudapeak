@@ -8,12 +8,10 @@
 
 __global__ void mem_global_v1(float *ptr) {
     int id = (blockIdx.x * blockDim.x * FETCH_PER_BLOCK) + threadIdx.x;
-    int id_ = id;
     float sum = 0;
 
     FETCH_8(sum, id, ptr, blockDim.x);
-    id = id_;
     FETCH_8(sum, id, ptr, blockDim.x);
 
-    ptr[id] =  sum;
+    ptr[(blockIdx.x * blockDim.x) + threadIdx.x] =  sum;
 }
