@@ -101,7 +101,7 @@ void run_mem_global() {
     unsigned fetchPerBlock = 16;
     int maxItems = deviceProperties.totalGlobalMem / sizeof(float) / 2;
     int numItems = roundToPowOf2(maxItems);
-    double nr_gbytes_total = (float) numItems * sizeof(float) / 1e6;
+    double nr_gbytes_total = (float) (numItems / fetchPerBlock) * sizeof(float) / 1e6;
     double nr_gflops_total = 0;
 
     // Kernel dimensions

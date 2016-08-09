@@ -1,17 +1,15 @@
 #include "cuda.h"
 
-#define FETCH_2(sum, id, ptr, jump) sum += ptr[id]; id += jump; sum += ptr[id]; id += jump;
-#define FETCH_4(sum, id, ptr, jump) FETCH_2(sum, id, ptr, jump);    FETCH_2(sum, id, ptr, jump)
-#define FETCH_8(sum, id, ptr, jump) FETCH_4(sum, id, ptr, jump);    FETCH_4(sum, id, ptr, jump)
-
 #define FETCH_PER_BLOCK 16
 
 __global__ void mem_global_v1(float *ptr) {
     int id = (blockIdx.x * blockDim.x * FETCH_PER_BLOCK) + threadIdx.x;
-    float sum = 0;
 
-    FETCH_8(sum, id, ptr, blockDim.x);
-    FETCH_8(sum, id, ptr, blockDim.x);
+    asm(".reg .v4.f32 t;");
+    for (int i = 0; i < FETCH_PER_BLOCK; i++) {
+        asm("ld.global.v4.f32 t, [%0];" : : "l"(ptr+id));
+        asm("add.s32 %0, %1, %2;" : "=r"(id) : "r"(id), "r"(blockDim.x));
+    }
 
-    ptr[(blockIdx.x * blockDim.x) + threadIdx.x] =  sum;
+    ptr[(blockIdx.x * blockDim.x) + threadIdx.x] =  (float) id;
 }
