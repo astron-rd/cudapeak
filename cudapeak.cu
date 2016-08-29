@@ -27,16 +27,18 @@ cudaDeviceProp deviceProperties;
 
 
 void report(string name, double milliseconds, double gflops, double gbytes) {
-    cout << setw(10) << string(name) << ": ";
+    int w1 = 20;
+    int w2 = 7;
+    cout << setw(w1) << string(name) << ": ";
     cout << setprecision(2) << fixed;
-    cout << milliseconds << " ms";
+    cout << setw(w2) << milliseconds << " ms";
     if (gflops != 0)
-        cout << ", " << gflops / milliseconds / 1e3 << " TFLOPS";
+        cout << ", " << setw(w2) << gflops / milliseconds * 1e-3 << " TFLOPS";
     if (gbytes != 0)
-        cout << ", " << gbytes / milliseconds << " GB/s";
+        cout << ", " << setw(w2) << gbytes / milliseconds << " GB/s";
     if (gflops != 0 && gbytes != 0) {
         float arithmetic_intensity = gflops / gbytes;
-        cout << ", " << arithmetic_intensity << " Flop/byte";
+        cout << ", " << setw(w2) << arithmetic_intensity << " Flop/byte";
     }
     cout << endl;
 }
@@ -110,13 +112,16 @@ void run_compute_sp_ai() {
     // Parameters
     int multiProcessorCount = deviceProperties.multiProcessorCount;
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+    int maxBlocksPerSM = deviceProperties.major >= 5 ? 32 : 16;
 
     // Amount of work performed
-    double nr_gflops_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024;
-    double nr_gbytes_total = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * 1024 * 2 * sizeof(float);
+    unsigned workPerBlock = 128 * 512 * 2;
+    unsigned globalBlocks = multiProcessorCount * maxBlocksPerSM * maxThreadsPerBlock;
+    double nr_gflops_total = (1e-6 * globalBlocks * workPerBlock);
+    double nr_gbytes_total = (1e-6 * globalBlocks * workPerBlock) * sizeof(float);
 
     // Kernel dimensions
-    dim3 gridDim(multiProcessorCount);
+    dim3 gridDim(multiProcessorCount, maxBlocksPerSM);
     dim3 blockDim(maxThreadsPerBlock);
 
     // Allocate memory
@@ -126,25 +131,25 @@ void run_compute_sp_ai() {
     // Run kernels
     double milliseconds;
     milliseconds = run_kernel((void *) &compute_sp_ai_v1, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v1", milliseconds, nr_gflops_total*2, nr_gbytes_total);
+    report("compute_sp_ai_v1", milliseconds, nr_gflops_total*1, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v2, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v2", milliseconds, nr_gflops_total*4, nr_gbytes_total);
+    report("compute_sp_ai_v2", milliseconds, nr_gflops_total*2, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v3, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v3", milliseconds, nr_gflops_total*8, nr_gbytes_total);
+    report("compute_sp_ai_v3", milliseconds, nr_gflops_total*4, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v4, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v4", milliseconds, nr_gflops_total*10, nr_gbytes_total);
+    report("compute_sp_ai_v4", milliseconds, nr_gflops_total*5, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v5, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v5", milliseconds, nr_gflops_total*16, nr_gbytes_total);
+    report("compute_sp_ai_v5", milliseconds, nr_gflops_total*8, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v6, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v6", milliseconds, nr_gflops_total*32, nr_gbytes_total);
+    report("compute_sp_ai_v6", milliseconds, nr_gflops_total*16, nr_gbytes_total);
 
     milliseconds = run_kernel((void *) &compute_sp_ai_v7, ptr, gridDim, blockDim);
-    report("compute_sp_ai_v7", milliseconds, nr_gflops_total*40, nr_gbytes_total);
+    report("compute_sp_ai_v7", milliseconds, nr_gflops_total*20, nr_gbytes_total);
 
     // Free memory
     cudaFree(ptr);
