@@ -175,38 +175,59 @@ void run_compute_sp_sincos() {
 
     // Run kernels
     double milliseconds;
-    milliseconds = run_kernel((void *) &compute_sp_sincos_b0, ptr, gridDim, blockDim);
-    report("fma:sincos ->   1:0", milliseconds, nr_gflops_total, nr_gbytes_total);
+    //milliseconds = run_kernel((void *) &compute_sp_sincos_b0, ptr, gridDim, blockDim);
+    //report("fma:sincos ->    1:0", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_b1, ptr, gridDim, blockDim);
-    report("fma:sincos ->   0:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    //milliseconds = run_kernel((void *) &compute_sp_sincos_b1, ptr, gridDim, blockDim);
+    //report("fma:sincos ->    0:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v1, ptr, gridDim, blockDim);
-    report("fma:sincos ->   1:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v00, ptr, gridDim, blockDim);
+    report("fma:sincos ->   1:16", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v2, ptr, gridDim, blockDim);
-    report("fma:sincos ->   2:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v01, ptr, gridDim, blockDim);
+    report("fma:sincos ->    1:8", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v3, ptr, gridDim, blockDim);
-    report("fma:sincos ->   4:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v02, ptr, gridDim, blockDim);
+    report("fma:sincos ->    1:4", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v4, ptr, gridDim, blockDim);
-    report("fma:sincos ->   8:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v03, ptr, gridDim, blockDim);
+    report("fma:sincos ->    1:2", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v5, ptr, gridDim, blockDim);
-    report("fma:sincos ->  16:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v04, ptr, gridDim, blockDim);
+    report("fma:sincos ->    1:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v6, ptr, gridDim, blockDim);
-    report("fma:sincos ->  32:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v05, ptr, gridDim, blockDim);
+    report("fma:sincos ->    2:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v7, ptr, gridDim, blockDim);
-    report("fma:sincos ->  64:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v06, ptr, gridDim, blockDim);
+    report("fma:sincos ->    4:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v8, ptr, gridDim, blockDim);
-    report("fma:sincos -> 128:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v07, ptr, gridDim, blockDim);
+    report("fma:sincos ->    8:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v9, ptr, gridDim, blockDim);
-    report("fma:sincos -> 256:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v08, ptr, gridDim, blockDim);
+    report("fma:sincos ->   16:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v09, ptr, gridDim, blockDim);
+    report("fma:sincos ->   32:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v10, ptr, gridDim, blockDim);
+    report("fma:sincos ->   64:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v11, ptr, gridDim, blockDim);
+    report("fma:sincos ->  128:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v12, ptr, gridDim, blockDim);
+    report("fma:sincos ->  256:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v13, ptr, gridDim, blockDim);
+    report("fma:sincos ->  512:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v14, ptr, gridDim, blockDim);
+    report("fma:sincos -> 1024:1", milliseconds, nr_gflops_total, nr_gbytes_total);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_v15, ptr, gridDim, blockDim);
+    report("fma:sincos -> 2048:1", milliseconds, nr_gflops_total, nr_gbytes_total);
 
     // Free memory
     cudaFree(ptr);
@@ -260,7 +281,7 @@ int main() {
     for (int i = 0; i < NR_BENCHMARKS; i++) {
         //run_mem_global();
         //run_compute_sp();
-        run_compute_sp_ai();
+        //run_compute_sp_ai();
         run_compute_sp_sincos();
     }
     cuProfilerStop();
