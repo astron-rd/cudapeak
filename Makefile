@@ -1,9 +1,13 @@
-PROGRAMS=cudapeak
+PROGRAMS=cudapeak.x
+KERNELS=mem_global_kernels.o compute_sp_kernels.o compute_sp_ai_kernels.o compute_sp_sincos_kernels.o
 
 default: ${PROGRAMS}
 
-cudapeak: cudapeak.cu
-	nvcc -o $@ $^ -lcuda -std=c++11 -g -lineinfo
+cudapeak.x: cudapeak.cu ${KERNELS}
+	nvcc -o $@ $^ -lcuda -std=c++11
+
+%_kernels.o: %_kernels.cu
+	nvcc -o $@ $^ -c
 
 clean:
-	@rm -f ${PROGRAMS}
+	@rm -f ${PROGRAMS} ${KERNELS}
