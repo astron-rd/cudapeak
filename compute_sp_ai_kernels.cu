@@ -4,7 +4,6 @@
 __global__ void compute_sp_ai_v1(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -13,13 +12,12 @@ __global__ void compute_sp_ai_v1(float *ptr)
         x += data[i].x * data[i].y;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v2(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -29,13 +27,12 @@ __global__ void compute_sp_ai_v2(float *ptr)
         x += data[i].y * data[i].y;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v3(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -50,13 +47,12 @@ __global__ void compute_sp_ai_v3(float *ptr)
         x += t2 * t2;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v4(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -72,13 +68,12 @@ __global__ void compute_sp_ai_v4(float *ptr)
         x += t2 * t3;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v5(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -99,13 +94,12 @@ __global__ void compute_sp_ai_v5(float *ptr)
         x += t5 * t6;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v6(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -134,13 +128,12 @@ __global__ void compute_sp_ai_v6(float *ptr)
         x += t4 * t6;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
 __global__ void compute_sp_ai_v7(float *ptr)
 {
     float x = threadIdx.x;
-    float y = 0;
 
     __shared__ float2 data[512];
 
@@ -174,5 +167,5 @@ __global__ void compute_sp_ai_v7(float *ptr)
         x += t4 * t6;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
