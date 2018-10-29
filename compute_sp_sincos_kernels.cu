@@ -1,6 +1,6 @@
 #include "cuda.h"
 
-#define LOOP_SIZE 128
+#define LOOP_SIZE 2048
 
 #define FMA_1(x, y)    asm("fma.rn.f32 %0, %1, %2, %3;" : "=f"(x) : "f"(x), "f"(y), "f"(x)); \
                        asm("fma.rn.f32 %0, %1, %2, %3;" : "=f"(y) : "f"(y), "f"(x), "f"(y));
@@ -27,14 +27,10 @@ __global__ void compute_sp_sincos_b0(float *ptr)
     float y = 0;
 
     for (int i = 0; i < LOOP_SIZE; i++) {
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
-        FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);   FMA_64(x, y);
+        FMA_1024(x, y); FMA_1024(x, y);
+        FMA_1024(x, y); FMA_1024(x, y);
+        FMA_1024(x, y); FMA_1024(x, y);
+        FMA_1024(x, y); FMA_1024(x, y);
     }
 
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
@@ -46,14 +42,23 @@ __global__ void compute_sp_sincos_b1(float *ptr)
     float y = 0;
 
     for (int i = 0; i < LOOP_SIZE; i++) {
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
-        SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);   SINCOS_64(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
+        SINCOS_256(x, y);
     }
 
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x + y;
