@@ -62,18 +62,19 @@ void report(
     cout << setw(w1) << string(name) << ": ";
     cout << setprecision(2) << fixed;
     cout << setw(w2) << milliseconds << " ms";
+    double seconds = milliseconds * 1e-3;
     if (gflops != 0) {
-        cout << ", " << setw(w2) << gflops / milliseconds * 1e-3 << " TFlops/s";
+        cout << ", " << setw(w2) << gflops / seconds * 1e-3 << " TFlops/s";
     }
     if (gbytes != 0) {
-        cout << ", " << setw(w2) << gbytes / milliseconds << " GB/s";
+        cout << ", " << setw(w2) << gbytes / seconds << " GB/s";
     }
     if (gflops != 0 && gbytes != 0) {
         float arithmetic_intensity = gflops / gbytes;
         cout << ", " << setw(w2) << arithmetic_intensity << " Flop/byte";
     }
     if (gops != 0) {
-        cout << ", " << setw(w2) << gops / milliseconds * 1e-3 << " TOps/s";
+        cout << ", " << setw(w2) << gops / seconds * 1e-3 << " TOps/s";
     }
     cout << endl;
 }
@@ -121,7 +122,7 @@ void run_compute_sp() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    double gflops = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * 2 * 2 * 2048 * 1024 * 8);
+    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * 2048 * 4 * 8192);
     double gbytes = 0;
 
     // Kernel dimensions
