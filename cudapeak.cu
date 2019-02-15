@@ -303,7 +303,9 @@ int main() {
     cudaGetDeviceProperties(&deviceProperties, deviceNumber);
 
     // Print CUDA device information
-    std::cout << "Device " << deviceNumber << ": " << deviceProperties.name << std::endl;
+    std::cout << "Device " << deviceNumber << ": " << deviceProperties.name;
+    std::cout << " (" << deviceProperties.multiProcessorCount <<  "SMs, ";
+    std::cout << deviceProperties.clockRate * 1e-6 << " Ghz)" << std::endl;
 
     // Run benchmarks
     cuProfilerStart();
