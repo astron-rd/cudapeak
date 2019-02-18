@@ -118,7 +118,8 @@ void run_compute_sp() {
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
 
     // Amount of work performed
-    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * 2048 * 4 * 8192);
+    int nr_iterations = 2048;
+    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 4 * 8192);
     double gbytes = 0;
 
     // Kernel dimensions
@@ -318,12 +319,11 @@ int main() {
     // Run benchmarks
     cuProfilerStart();
     for (int i = 0; i < NR_BENCHMARKS; i++) {
-        run_mem_global();
+        //run_mem_global();
         run_compute_sp();
         run_compute_sp_ai();
-        run_compute_sp_sincos();
-        run_compute_sp_sincos_sfu();
-        run_compute_sp_sincos_fpu();
+        //run_compute_sp_sincos_sfu();
+        //run_compute_sp_sincos_fpu();
     }
     cuProfilerStop();
 
