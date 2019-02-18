@@ -18,23 +18,20 @@ __global__ void compute_sp_ai_v4(float *ptr);
 __global__ void compute_sp_ai_v5(float *ptr);
 __global__ void compute_sp_ai_v6(float *ptr);
 __global__ void compute_sp_ai_v7(float *ptr);
-__global__ void compute_sp_sincos_b0(float *ptr);
-__global__ void compute_sp_sincos_b1(float *ptr);
-__global__ void compute_sp_sincos_v00(float *ptr);
-__global__ void compute_sp_sincos_v01(float *ptr);
-__global__ void compute_sp_sincos_v02(float *ptr);
-__global__ void compute_sp_sincos_v03(float *ptr);
-__global__ void compute_sp_sincos_v04(float *ptr);
-__global__ void compute_sp_sincos_v05(float *ptr);
-__global__ void compute_sp_sincos_v06(float *ptr);
-__global__ void compute_sp_sincos_v07(float *ptr);
-__global__ void compute_sp_sincos_v08(float *ptr);
-__global__ void compute_sp_sincos_v09(float *ptr);
-__global__ void compute_sp_sincos_v10(float *ptr);
-__global__ void compute_sp_sincos_v11(float *ptr);
-__global__ void compute_sp_sincos_v12(float *ptr);
-__global__ void compute_sp_sincos_v13(float *ptr);
-__global__ void compute_sp_sincos_v14(float *ptr);
+__global__ void compute_sp_sincos_fpu_01(float *ptr);
+__global__ void compute_sp_sincos_fpu_02(float *ptr);
+__global__ void compute_sp_sincos_fpu_04(float *ptr);
+__global__ void compute_sp_sincos_fpu_08(float *ptr);
+__global__ void compute_sp_sincos_fpu_16(float *ptr);
+__global__ void compute_sp_sincos_fpu_32(float *ptr);
+__global__ void compute_sp_sincos_fpu_64(float *ptr);
+__global__ void compute_sp_sincos_sfu_01(float *ptr);
+__global__ void compute_sp_sincos_sfu_02(float *ptr);
+__global__ void compute_sp_sincos_sfu_04(float *ptr);
+__global__ void compute_sp_sincos_sfu_08(float *ptr);
+__global__ void compute_sp_sincos_sfu_16(float *ptr);
+__global__ void compute_sp_sincos_sfu_32(float *ptr);
+__global__ void compute_sp_sincos_sfu_64(float *ptr);
 
 using namespace std;
 
@@ -189,81 +186,6 @@ void run_compute_sp_ai() {
     cudaFree(ptr);
 }
 
-void run_compute_sp_sincos() {
-    // Parameters
-    int multiProcessorCount = deviceProperties.multiProcessorCount;
-    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
-
-    // Amount of work performed
-    double gflops = (1e-6 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * 2 * 2 * 2048 * 1024 * 8);
-    double gbytes = 0;
-
-    // Kernel dimensions
-    dim3 gridDim(multiProcessorCount);
-    dim3 blockDim(maxThreadsPerBlock);
-
-    // Allocate memory
-    float *ptr;
-    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
-
-    // Run kernels
-    double milliseconds;
-    milliseconds = run_kernel((void *) &compute_sp_sincos_b0, ptr, gridDim, blockDim);
-    report("fma:sincos ->    1:0", milliseconds, 0, gbytes, gflops*4);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_b1, ptr, gridDim, blockDim);
-    report("fma:sincos ->    0:1", milliseconds, 0, gbytes, gflops*2);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v00, ptr, gridDim, blockDim);
-    report("fma:sincos ->    1:8", milliseconds, gflops, gbytes, gflops + gflops*8);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v01, ptr, gridDim, blockDim);
-    report("fma:sincos ->    1:4", milliseconds, gflops, gbytes, gflops + gflops*4);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v02, ptr, gridDim, blockDim);
-    report("fma:sincos ->    1:2", milliseconds, gflops, gbytes, gflops + gflops*2);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v03, ptr, gridDim, blockDim);
-    report("fma:sincos ->    1:1", milliseconds, gflops, gbytes, gflops + gflops*1);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v04, ptr, gridDim, blockDim);
-    report("fma:sincos ->    2:1", milliseconds, gflops, gbytes, gflops + gflops/2.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v05, ptr, gridDim, blockDim);
-    report("fma:sincos ->    4:1", milliseconds, gflops, gbytes, gflops + gflops/4.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v06, ptr, gridDim, blockDim);
-    report("fma:sincos ->    8:1", milliseconds, gflops, gbytes, gflops + gflops/8.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v07, ptr, gridDim, blockDim);
-    report("fma:sincos ->   16:1", milliseconds, gflops, gbytes, gflops + gflops/16.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v08, ptr, gridDim, blockDim);
-    report("fma:sincos ->   32:1", milliseconds, gflops, gbytes, gflops + gflops/32.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v09, ptr, gridDim, blockDim);
-    report("fma:sincos ->   64:1", milliseconds, gflops, gbytes, gflops + gflops/64.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v10, ptr, gridDim, blockDim);
-    report("fma:sincos ->  128:1", milliseconds, gflops, gbytes, gflops + gflops/128.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v11, ptr, gridDim, blockDim);
-    report("fma:sincos ->  256:1", milliseconds, gflops, gbytes, gflops + gflops/256.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v12, ptr, gridDim, blockDim);
-    report("fma:sincos ->  512:1", milliseconds, gflops, gbytes, gflops + gflops/512.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v13, ptr, gridDim, blockDim);
-    report("fma:sincos -> 1024:1", milliseconds, gflops, gbytes, gflops + gflops/1024.0);
-
-    milliseconds = run_kernel((void *) &compute_sp_sincos_v14, ptr, gridDim, blockDim);
-    report("fma:sincos -> 2048:1", milliseconds, gflops, gbytes, gflops + gflops/2048.0);
-
-    // Free memory
-    cudaFree(ptr);
-}
-
-
 void run_mem_global() {
     // Parameters
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
@@ -292,6 +214,95 @@ void run_mem_global() {
     cudaFree(ptr);
 }
 
+void run_compute_sp_sincos_fpu() {
+    // Parameters
+    int multiProcessorCount = deviceProperties.multiProcessorCount;
+    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+
+    // Amount of work performed
+    int nr_iterations = 512;
+    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 4 * 8192);
+    double gbytes = 0;
+
+    // Kernel dimensions
+    dim3 gridDim(multiProcessorCount);
+    dim3 blockDim(maxThreadsPerBlock);
+
+    // Allocate memory
+    float *ptr;
+    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+
+    // Run kernels
+    double milliseconds;
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_01, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->    1:1", milliseconds, gflops, gbytes, gflops);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_02, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->    2:1", milliseconds, gflops, gbytes, gflops/2);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_04, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->    4:1", milliseconds, gflops, gbytes, gflops/4);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_08, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->    8:1", milliseconds, gflops, gbytes, gflops/8);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_16, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->   16:1", milliseconds, gflops, gbytes, gflops/16);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_32, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->   32:1", milliseconds, gflops, gbytes, gflops/32);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_fpu_64, ptr, gridDim, blockDim);
+    report("fma:sincos (fpu) ->   64:1", milliseconds, gflops, gbytes, gflops/64);
+
+    // Free memory
+    cudaFree(ptr);
+}
+
+void run_compute_sp_sincos_sfu() {
+    // Parameters
+    int multiProcessorCount = deviceProperties.multiProcessorCount;
+    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+
+    // Amount of work performed
+    int nr_iterations = 512;
+    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 4 * 8192);
+    double gbytes = 0;
+
+    // Kernel dimensions
+    dim3 gridDim(multiProcessorCount);
+    dim3 blockDim(maxThreadsPerBlock);
+
+    // Allocate memory
+    float *ptr;
+    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+
+    // Run kernels
+    double milliseconds;
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_01, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->    1:1", milliseconds, gflops, gbytes, gflops);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_02, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->    2:1", milliseconds, gflops, gbytes, gflops/2);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_04, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->    4:1", milliseconds, gflops, gbytes, gflops/4);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_08, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->    8:1", milliseconds, gflops, gbytes, gflops/8);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_16, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->   16:1", milliseconds, gflops, gbytes, gflops/16);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_32, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->   32:1", milliseconds, gflops, gbytes, gflops/32);
+
+    milliseconds = run_kernel((void *) &compute_sp_sincos_sfu_64, ptr, gridDim, blockDim);
+    report("fma:sincos (sfu) ->   64:1", milliseconds, gflops, gbytes, gflops/64);
+
+    // Free memory
+    cudaFree(ptr);
+}
 
 int main() {
     // Read device number from envirionment
@@ -315,6 +326,8 @@ int main() {
         run_compute_sp();
         run_compute_sp_ai();
         run_compute_sp_sincos();
+        run_compute_sp_sincos_sfu();
+        run_compute_sp_sincos_fpu();
     }
     cuProfilerStop();
 
