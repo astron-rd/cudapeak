@@ -149,7 +149,7 @@ void run_compute_sp_ai() {
     unsigned workPerBlock = 128 * 512 * 2;
     unsigned globalBlocks = multiProcessorCount * maxBlocksPerSM * maxThreadsPerBlock;
     double gflops = (1e-9 * globalBlocks * workPerBlock);
-    double gbytes = (1e-9 * globalBlocks * workPerBlock) * sizeof(float);
+    double gbytes = (1e-9 * globalBlocks * workPerBlock) * 2;
 
     // Kernel dimensions
     dim3 gridDim(multiProcessorCount, maxBlocksPerSM);
