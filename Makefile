@@ -7,7 +7,7 @@ cudapeak.x: cudapeak.cu ${KERNELS}
 	nvcc -o $@ $^ -lcuda -std=c++11
 
 %_kernels.o: %_kernels.cu
-	nvcc -o $@ $^ -c
+	nvcc -o $@ $^ -c -lineinfo
 
 clean:
 	@rm -f ${PROGRAMS} ${KERNELS}
