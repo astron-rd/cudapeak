@@ -17,6 +17,12 @@ __global__ void oi_sp_smem_04(float *ptr);
 __global__ void oi_sp_smem_08(float *ptr);
 __global__ void oi_sp_smem_16(float *ptr);
 __global__ void oi_sp_smem_32(float *ptr);
+__global__ void oi_sp_dmem_01(float2 *ptr);
+__global__ void oi_sp_dmem_02(float2 *ptr);
+__global__ void oi_sp_dmem_04(float2 *ptr);
+__global__ void oi_sp_dmem_08(float2 *ptr);
+__global__ void oi_sp_dmem_16(float2 *ptr);
+__global__ void oi_sp_dmem_32(float2 *ptr);
 __global__ void compute_sp_sincos_fpu_01(float *ptr);
 __global__ void compute_sp_sincos_fpu_02(float *ptr);
 __global__ void compute_sp_sincos_fpu_04(float *ptr);
@@ -183,6 +189,50 @@ void run_oi_sp_smem() {
     cudaFree(ptr);
 }
 
+void run_oi_sp_dmem() {
+    // Parameters
+    int multiProcessorCount = deviceProperties.multiProcessorCount;
+    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+    int maxBlocksPerSM = deviceProperties.major >= 5 ? 32 : 16;
+
+    // Amount of work performed
+    unsigned workPerBlock = 128 * 512 * 2;
+    unsigned globalBlocks = multiProcessorCount * maxBlocksPerSM * maxThreadsPerBlock;
+    double gflops = (1e-9 * globalBlocks * workPerBlock);
+    double gbytes = (1e-9 * globalBlocks * workPerBlock) * 0.5;
+
+    // Kernel dimensions
+    dim3 gridDim(multiProcessorCount, maxBlocksPerSM);
+    dim3 blockDim(maxThreadsPerBlock);
+
+    // Allocate memory
+    float *ptr;
+    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * 2 * sizeof(float));
+
+    // Run kernels
+    double milliseconds;
+    milliseconds = run_kernel((void *) &oi_sp_dmem_01, ptr, gridDim, blockDim);
+    report("flop:byte ->  1:1", milliseconds, gflops*1, gbytes);
+
+    milliseconds = run_kernel((void *) &oi_sp_dmem_02, ptr, gridDim, blockDim);
+    report("flop:byte ->  2:1", milliseconds, gflops*2, gbytes);
+
+    milliseconds = run_kernel((void *) &oi_sp_dmem_04, ptr, gridDim, blockDim);
+    report("flop:byte ->  4:1", milliseconds, gflops*4, gbytes);
+
+    milliseconds = run_kernel((void *) &oi_sp_dmem_08, ptr, gridDim, blockDim);
+    report("flop:byte ->  8:1", milliseconds, gflops*8, gbytes);
+
+    milliseconds = run_kernel((void *) &oi_sp_dmem_16, ptr, gridDim, blockDim);
+    report("flop:byte -> 16:1", milliseconds, gflops*16, gbytes);
+
+    milliseconds = run_kernel((void *) &oi_sp_dmem_32, ptr, gridDim, blockDim);
+    report("flop:byte -> 32:1", milliseconds, gflops*32, gbytes);
+
+    // Free memory
+    cudaFree(ptr);
+}
+
 void run_mem_global() {
     // Parameters
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
@@ -322,6 +372,7 @@ int main() {
         //run_mem_global();
         run_compute_sp();
         run_oi_sp_smem();
+        run_oi_sp_dmem();
         //run_compute_sp_sincos_sfu();
         //run_compute_sp_sincos_fpu();
     }

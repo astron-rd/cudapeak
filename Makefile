@@ -1,5 +1,5 @@
 PROGRAMS=cudapeak.x
-KERNELS=mem_global_kernels.o compute_sp_kernels.o compute_sp_sincos_fpu_kernels.o compute_sp_sincos_sfu_kernels.o oi_sp_smem_kernels.o
+KERNELS=mem_global_kernels.o compute_sp_kernels.o compute_sp_sincos_fpu_kernels.o compute_sp_sincos_sfu_kernels.o oi_sp_smem_kernels.o oi_sp_dmem_kernels.o
 
 default: ${PROGRAMS}
 
