@@ -1,7 +1,7 @@
 #include "cuda.h"
 
 
-__global__ void compute_sp_ai_01(float *ptr)
+__global__ void oi_sp_smem_01(float *ptr)
 {
     float x = threadIdx.x;
 
@@ -22,7 +22,7 @@ __global__ void compute_sp_ai_01(float *ptr)
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
-__global__ void compute_sp_ai_02(float *ptr)
+__global__ void oi_sp_smem_02(float *ptr)
 {
     float x = threadIdx.x;
 
@@ -44,7 +44,7 @@ __global__ void compute_sp_ai_02(float *ptr)
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
-__global__ void compute_sp_ai_04(float *ptr)
+__global__ void oi_sp_smem_04(float *ptr)
 {
     float x = threadIdx.x;
 
@@ -66,7 +66,7 @@ __global__ void compute_sp_ai_04(float *ptr)
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
-__global__ void compute_sp_ai_08(float *ptr)
+__global__ void oi_sp_smem_08(float *ptr)
 {
     float x = threadIdx.x;
 
@@ -90,7 +90,7 @@ __global__ void compute_sp_ai_08(float *ptr)
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
-__global__ void compute_sp_ai_16(float *ptr)
+__global__ void oi_sp_smem_16(float *ptr)
 {
     float x = threadIdx.x;
 
@@ -119,7 +119,7 @@ __global__ void compute_sp_ai_16(float *ptr)
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
 }
 
-__global__ void compute_sp_ai_32(float *ptr)
+__global__ void oi_sp_smem_32(float *ptr)
 {
     float x = threadIdx.x;
 

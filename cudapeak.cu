@@ -11,12 +11,12 @@
 
 __global__ void mem_global_v1(float *ptr);
 __global__ void compute_sp_v1(float *ptr);
-__global__ void compute_sp_ai_01(float *ptr);
-__global__ void compute_sp_ai_02(float *ptr);
-__global__ void compute_sp_ai_04(float *ptr);
-__global__ void compute_sp_ai_08(float *ptr);
-__global__ void compute_sp_ai_16(float *ptr);
-__global__ void compute_sp_ai_32(float *ptr);
+__global__ void oi_sp_smem_01(float *ptr);
+__global__ void oi_sp_smem_02(float *ptr);
+__global__ void oi_sp_smem_04(float *ptr);
+__global__ void oi_sp_smem_08(float *ptr);
+__global__ void oi_sp_smem_16(float *ptr);
+__global__ void oi_sp_smem_32(float *ptr);
 __global__ void compute_sp_sincos_fpu_01(float *ptr);
 __global__ void compute_sp_sincos_fpu_02(float *ptr);
 __global__ void compute_sp_sincos_fpu_04(float *ptr);
@@ -139,7 +139,7 @@ void run_compute_sp() {
     cudaFree(ptr);
 }
 
-void run_compute_sp_ai() {
+void run_oi_sp_smem() {
     // Parameters
     int multiProcessorCount = deviceProperties.multiProcessorCount;
     int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
@@ -161,22 +161,22 @@ void run_compute_sp_ai() {
 
     // Run kernels
     double milliseconds;
-    milliseconds = run_kernel((void *) &compute_sp_ai_01, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_01, ptr, gridDim, blockDim);
     report("flop:byte ->  1:1", milliseconds, gflops*1, gbytes);
 
-    milliseconds = run_kernel((void *) &compute_sp_ai_02, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_02, ptr, gridDim, blockDim);
     report("flop:byte ->  2:1", milliseconds, gflops*2, gbytes);
 
-    milliseconds = run_kernel((void *) &compute_sp_ai_04, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_04, ptr, gridDim, blockDim);
     report("flop:byte ->  4:1", milliseconds, gflops*4, gbytes);
 
-    milliseconds = run_kernel((void *) &compute_sp_ai_08, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_08, ptr, gridDim, blockDim);
     report("flop:byte ->  8:1", milliseconds, gflops*8, gbytes);
 
-    milliseconds = run_kernel((void *) &compute_sp_ai_16, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_16, ptr, gridDim, blockDim);
     report("flop:byte -> 16:1", milliseconds, gflops*16, gbytes);
 
-    milliseconds = run_kernel((void *) &compute_sp_ai_32, ptr, gridDim, blockDim);
+    milliseconds = run_kernel((void *) &oi_sp_smem_32, ptr, gridDim, blockDim);
     report("flop:byte -> 32:1", milliseconds, gflops*32, gbytes);
 
     // Free memory
@@ -321,7 +321,7 @@ int main() {
     for (int i = 0; i < NR_BENCHMARKS; i++) {
         //run_mem_global();
         run_compute_sp();
-        run_compute_sp_ai();
+        run_oi_sp_smem();
         //run_compute_sp_sincos_sfu();
         //run_compute_sp_sincos_fpu();
     }
