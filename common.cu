@@ -42,7 +42,7 @@ double run_kernel(
     cudaStream_t stream,
     cudaDeviceProp deviceProperties,
     void *kernel,
-    float *ptr,
+    void *ptr,
     dim3 gridDim,
     dim3 blockDim) {
     // Setup events
@@ -51,12 +51,12 @@ double run_kernel(
     cudaEventCreate(&stop);
 
     // Warmup
-    ((void (*)(float *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
+    ((void (*)(void *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
 
     // Benchmark
     cudaEventRecord(start, stream);
     for (int i = 0; i < NR_ITERATIONS; i++) {
-        ((void (*)(float *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
+        ((void (*)(void *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
     }
     cudaEventRecord(stop, stream);
 

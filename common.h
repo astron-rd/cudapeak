@@ -33,7 +33,7 @@ double run_kernel(
     cudaStream_t stream,
     cudaDeviceProp deviceProperties,
     void *kernel,
-    float *ptr,
+    void *ptr,
     dim3 gridDim,
     dim3 blockDim);
 
