@@ -1,13 +1,14 @@
-PROGRAMS=cudapeak.x
-KERNELS=mem_global_kernels.o compute_sp_kernels.o compute_sp_sincos_fpu_kernels.o compute_sp_sincos_sfu_kernels.o oi_sp_smem_kernels.o oi_sp_dmem_kernels.o
+PROGRAMS=dmem.x fp32.x fp32_smem.x fp32_dmem.x fp32_sincos_fpu.x fp32_sincos_sfu.x
+
+.PRECIOUS: %.o
 
 default: ${PROGRAMS}
 
-cudapeak.x: cudapeak.cu ${KERNELS}
-	nvcc -o $@ $^ -lcuda -std=c++11
+%.x: %.cu kernels/%.o common.o
+	nvcc -o $@ $^ -lcuda
 
-%_kernels.o: %_kernels.cu
+%.o: %.cu
 	nvcc -o $@ $^ -c -lineinfo
 
 clean:
-	@rm -f ${PROGRAMS} ${KERNELS}
+	@rm -f ${PROGRAMS} *.o kernels/*.o

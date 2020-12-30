@@ -1,16 +1,9 @@
 #include "cuda.h"
 
-
-__global__ void oi_sp_smem_01(float *ptr)
+__global__ void fp32_dmem_01(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -19,19 +12,13 @@ __global__ void oi_sp_smem_01(float *ptr)
         x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }
 
-__global__ void oi_sp_smem_02(float *ptr)
+__global__ void fp32_dmem_02(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -41,19 +28,13 @@ __global__ void oi_sp_smem_02(float *ptr)
         x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }
 
-__global__ void oi_sp_smem_04(float *ptr)
+__global__ void fp32_dmem_04(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -63,19 +44,13 @@ __global__ void oi_sp_smem_04(float *ptr)
         x += a * b; x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }
 
-__global__ void oi_sp_smem_08(float *ptr)
+__global__ void fp32_dmem_08(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -87,19 +62,13 @@ __global__ void oi_sp_smem_08(float *ptr)
         x += a * b; x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }
 
-__global__ void oi_sp_smem_16(float *ptr)
+__global__ void fp32_dmem_16(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -116,19 +85,13 @@ __global__ void oi_sp_smem_16(float *ptr)
         x += a * b; x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }
 
-__global__ void oi_sp_smem_32(float *ptr)
+__global__ void fp32_dmem_32(float2 *ptr)
 {
     float x = threadIdx.x;
-
-    __shared__ float2 data[512];
-
-    for (int i = x; i < 512; i += blockDim.x) {
-        data[i].x = ptr[i];
-        data[i].y = ptr[i] + 1;
-    }
+    float2 *data = &ptr[blockIdx.x * blockDim.x];
 
     for (int r = 0; r < 128; r++)
     for (int i = 0; i < 512; i++) {
@@ -155,5 +118,5 @@ __global__ void oi_sp_smem_32(float *ptr)
         x += a * b; x += a * b;
     }
 
-    ptr[blockIdx.x * blockDim.x + threadIdx.x] = x;
+    ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float2(x, -x);
 }

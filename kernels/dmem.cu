@@ -2,7 +2,7 @@
 
 #define FETCH_PER_BLOCK 16
 
-__global__ void mem_global_v1(float *ptr) {
+__global__ void dmem_kernel(float *ptr) {
     int id = (blockIdx.x * blockDim.x * FETCH_PER_BLOCK) + threadIdx.x;
 
     asm(".reg .f32 t;");
