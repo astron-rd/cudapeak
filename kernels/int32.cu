@@ -1,4 +1,16 @@
-#include "int32_common.h"
+template<int nr_int32>
+__device__ void int32_8(
+    int2& a, int2& b, int2& c)
+{
+    // Perform nr_int32 * 4 imad
+    #pragma unroll nr_int32
+    for (int i = 0; i < nr_int32; i++) {
+        asm("mad.lo.s32 %0, %1, %2, %3;" : "=r"(a.x) : "r"(b.x), "r"(c.x), "r"(a.x));
+        asm("mad.lo.s32 %0, %1, %2, %3;" : "=r"(a.x) : "r"(-b.y), "r"(c.y), "r"(a.x));
+        asm("mad.lo.s32 %0, %1, %2, %3;" : "=r"(a.y) : "r"(b.x), "r"(c.y), "r"(a.y));
+        asm("mad.lo.s32 %0, %1, %2, %3;" : "=r"(a.y) : "r"(b.y), "r"(c.x), "r"(a.y));
+    }
+}
 
 __global__ void int32_kernel(int *ptr)
 {
@@ -7,8 +19,7 @@ __global__ void int32_kernel(int *ptr)
     int2 c = make_int2(threadIdx.x, 2);
 
     for (int i = 0; i < 2048; i++) {
-        int32_8192(a, b, c); int32_8192(a, b, c);
-        int32_8192(a, b, c); int32_8192(a, b, c);
+        int32_8<4096>(a, b, c);
     }
 
     ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;

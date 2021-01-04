@@ -14,7 +14,7 @@ void run(
     int nr_iterations = 2048;
     double gflops = 0;
     double gbytes = 0;
-    double gops   = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 4 * 8192);
+    double gops   = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 8 * 4096);
 
     // Kernel dimensions
     dim3 gridDim(multiProcessorCount);
