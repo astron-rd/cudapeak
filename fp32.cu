@@ -12,7 +12,7 @@ void run(
 
     // Amount of work performed
     int nr_iterations = 2048;
-    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 4 * 8192);
+    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 8 * 4096);
     double gbytes = 0;
 
     // Kernel dimensions
