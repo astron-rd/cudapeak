@@ -1,4 +1,4 @@
-PROGRAMS=dmem.x fp32.x fp32_smem.x fp32_dmem.x fp32_sincos_fpu.x fp32_sincos_sfu.x int32.x
+PROGRAMS=dmem.x fp32.x fp32_smem.x fp32_dmem.x fp32_sincos_fpu.x fp32_sincos_sfu.x int32.x fp32_int32.x
 
 .PRECIOUS: %.o
 
