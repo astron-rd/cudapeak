@@ -1,14 +1,14 @@
-PROGRAMS=dmem.x fp32.x fp32_smem.x fp32_dmem.x fp32_sincos_fpu.x fp32_sincos_sfu.x int32.x fp32_int32.x
+NVCC   := nvcc
+CFLAGS := -lcuda --resource-usage --use_fast_math
 
-.PRECIOUS: %.o
+SRC := $(wildcard *.cu)
+SRC := $(filter-out common.cu, $(SRC))
+BIN := $(patsubst %.cu, %.x, $(SRC))
 
-default: ${PROGRAMS}
+default: ${BIN}
 
-%.x: %.cu kernels/%.o common.o
-	nvcc -o $@ $^ -lcuda
-
-%.o: %.cu
-	nvcc -o $@ $^ -c -lineinfo
+%.x: %.cu kernels/%.cu common.cu
+	${NVCC} ${CFLAGS} -o $@ $^
 
 clean:
-	@rm -f ${PROGRAMS} *.o kernels/*.o
+	@rm -f ${BIN}
