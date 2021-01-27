@@ -19,8 +19,8 @@ __device__ void smem_fp32_16_8(
     }
 }
 
-#define NR_REPETITIONS  1024
-#define FETCH_PER_BLOCK 512
+#define NR_REPETITIONS  512
+#define FETCH_PER_BLOCK 2048
 
 __shared__ float4 data[FETCH_PER_BLOCK];
 
@@ -40,7 +40,8 @@ __global__ void fp32_smem_01(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<1>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<1>(a, &data[idx]);
     }
 
     FINISH
@@ -52,7 +53,8 @@ __global__ void fp32_smem_02(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/2; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<2>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<2>(a, &data[idx]);
     }
 
     FINISH
@@ -64,7 +66,8 @@ __global__ void fp32_smem_04(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/4; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<4>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<4>(a, &data[idx]);
     }
 
     FINISH
@@ -76,7 +79,8 @@ __global__ void fp32_smem_08(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/8; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<8>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<8>(a, &data[idx]);
     }
 
     FINISH
@@ -88,7 +92,8 @@ __global__ void fp32_smem_16(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/16; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<16>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<16>(a, &data[idx]);
     }
 
     FINISH
@@ -100,7 +105,8 @@ __global__ void fp32_smem_32(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/32; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<32>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<32>(a, &data[idx]);
     }
 
     FINISH
@@ -112,7 +118,8 @@ __global__ void fp32_smem_64(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/64; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<64>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<64>(a, &data[idx]);
     }
 
     FINISH
@@ -124,7 +131,8 @@ __global__ void fp32_smem_128(float *ptr)
 
     for (int r = 0; r < NR_REPETITIONS/128; r++)
     for (int i = 0; i < FETCH_PER_BLOCK; i++) {
-        smem_fp32_16_8<128>(a, &data[i]);
+        int idx = (i + threadIdx.x) % FETCH_PER_BLOCK;
+        smem_fp32_16_8<128>(a, &data[idx]);
     }
 
     FINISH
