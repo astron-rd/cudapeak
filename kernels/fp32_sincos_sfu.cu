@@ -1,4 +1,4 @@
-#define NR_ITERATIONS 1024
+#define NR_ITERATIONS 512
 
 template<int nr_fma, int nr_sincos>
 __device__ void fp32_sincos_sfu_1_1(float2& a, float2& b, float2& c)
