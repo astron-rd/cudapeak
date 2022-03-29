@@ -1,5 +1,5 @@
 NVCC   := nvcc
-CFLAGS := -lcuda --resource-usage --use_fast_math
+CFLAGS := -lcuda --resource-usage -arch=native
 
 SRC := $(wildcard *.cu)
 SRC := $(filter-out common.cu, $(SRC))
