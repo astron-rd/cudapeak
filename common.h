@@ -14,10 +14,10 @@
 using namespace std;
 
 // Number of times to run each kernel
-#define NR_ITERATIONS 10
+#define NR_ITERATIONS 1
 
 // Number of times to run each benchmark
-#define NR_BENCHMARKS 5
+#define NR_BENCHMARKS 100
 
 // Helper functions
 unsigned roundToPowOf2(unsigned number);

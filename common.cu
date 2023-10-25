@@ -1,5 +1,9 @@
 #include "common.h"
 
+#if defined(HAVE_PMT)
+#include <pmt.h>
+#endif
+
 void report(
     string name,
     double milliseconds,
@@ -85,8 +89,19 @@ int main() {
     std::cout << deviceProperties.clockRate * 1e-6 << " Ghz)" << std::endl;
 
     // Run benchmarks
+#if defined(HAVE_PMT)
+    auto pmt = pmt::nvml::NVML::Create();
+#endif
     for (int i = 0; i < NR_BENCHMARKS; i++) {
-        run(stream, deviceProperties);
+#if defined(HAVE_PMT)
+    pmt::State start = pmt->Read();
+#endif
+       run(stream, deviceProperties);
+#if defined(HAVE_PMT)
+    pmt::State end = pmt->Read();
+    double watts = pmt::PMT::watts(start, end);
+    std::cout << "Watt: " << watts << std::endl;
+#endif
     }
 
     return EXIT_SUCCESS;
