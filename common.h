@@ -7,7 +7,6 @@
 
 #include <cuda.h>
 #include <cuda_runtime.h>
-#include <cudaProfiler.h>
 
 #ifndef COMMON_H
 #define COMMON_H

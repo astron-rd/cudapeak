@@ -85,11 +85,9 @@ int main() {
     std::cout << deviceProperties.clockRate * 1e-6 << " Ghz)" << std::endl;
 
     // Run benchmarks
-    cuProfilerStart();
     for (int i = 0; i < NR_BENCHMARKS; i++) {
         run(stream, deviceProperties);
     }
-    cuProfilerStop();
 
     return EXIT_SUCCESS;
 }
