@@ -1,16 +1,14 @@
 #include "common.h"
 
-#if defined(HAVE_PMT)
-#include <pmt.h>
-#endif
-
 void report(
     string name,
-    double milliseconds,
+    measurement measurement,
     double gflops,
     double gbytes,
     double gops)
 {
+    double milliseconds = measurement.runtime;
+    double power = measurement.power;
     int w1 = 20;
     int w2 = 7;
     cout << setw(w1) << string(name) << ": ";
@@ -19,6 +17,13 @@ void report(
     double seconds = milliseconds * 1e-3;
     if (gflops != 0) {
         cout << ", " << setw(w2) << gflops / seconds * 1e-3 << " TFlops/s";
+    }
+    if (power != 0) {
+        cout << ", " << setw(w2) << power << " W";
+        double efficiency = gflops / seconds / power;
+        if (efficiency < 1e4) {
+            cout << ", " << setw(w2) << gflops / seconds / power << " GFlops/W";
+        }
     }
     if (gbytes != 0) {
         cout << ", " << setw(w2) << gbytes / seconds << " GB/s";
@@ -42,13 +47,17 @@ unsigned roundToPowOf2(unsigned number) {
 }
 
 
-double run_kernel(
+measurement run_kernel(
     cudaStream_t stream,
     cudaDeviceProp deviceProperties,
     void *kernel,
     void *ptr,
     dim3 gridDim,
-    dim3 blockDim) {
+    dim3 blockDim
+#if defined(HAVE_PMT)
+    , std::shared_ptr<pmt::PMT> pmt
+#endif
+    ) {
     // Setup events
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
@@ -59,16 +68,31 @@ double run_kernel(
 
     // Benchmark
     cudaEventRecord(start, stream);
+#if defined(HAVE_PMT)
+    pmt::State state_start = pmt->Read();
+#endif
     for (int i = 0; i < NR_ITERATIONS; i++) {
         ((void (*)(void *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
     }
     cudaEventRecord(stop, stream);
+#if defined(HAVE_PMT)
+    pmt::State state_end = pmt->Read();
+#endif
 
     // Finish measurement
     cudaEventSynchronize(stop);
     float milliseconds = 0;
     cudaEventElapsedTime(&milliseconds, start, stop);
-    return milliseconds / NR_ITERATIONS;
+
+    measurement measurement;
+    measurement.runtime = milliseconds / NR_ITERATIONS;
+    measurement.energy = 0;
+#if defined(HAVE_PMT)
+    measurement.energy = pmt::PMT::joules(state_start, state_end) / NR_ITERATIONS;
+    measurement.power = pmt::PMT::watts(state_start, state_end);
+#endif
+
+    return measurement;
 }
 
 int main() {
@@ -88,20 +112,17 @@ int main() {
     std::cout << " (" << deviceProperties.multiProcessorCount <<  "SMs, ";
     std::cout << deviceProperties.clockRate * 1e-6 << " Ghz)" << std::endl;
 
-    // Run benchmarks
+    // Run benchmark
 #if defined(HAVE_PMT)
-    auto pmt = pmt::nvml::NVML::Create();
+    std::unique_ptr<pmt::PMT> pmt_ = pmt::nvml::NVML::Create();
+    std::shared_ptr<pmt::PMT> pmt = std::move(pmt_);
 #endif
     for (int i = 0; i < NR_BENCHMARKS; i++) {
+       run(stream, deviceProperties
 #if defined(HAVE_PMT)
-    pmt::State start = pmt->Read();
+       , pmt
 #endif
-       run(stream, deviceProperties);
-#if defined(HAVE_PMT)
-    pmt::State end = pmt->Read();
-    double watts = pmt::PMT::watts(start, end);
-    std::cout << "Watt: " << watts << std::endl;
-#endif
+       );
     }
 
     return EXIT_SUCCESS;

@@ -4,7 +4,11 @@ __global__ void fp32_kernel(float *ptr);
 
 void run(
     cudaStream_t stream,
-    cudaDeviceProp deviceProperties)
+    cudaDeviceProp deviceProperties
+#if defined(HAVE_PMT)
+    , std::shared_ptr<pmt::PMT> pmt
+#endif
+)
 {
     // Parameters
     int multiProcessorCount = deviceProperties.multiProcessorCount;
@@ -24,9 +28,13 @@ void run(
     cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
     // Run kernel
-    double milliseconds;
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_kernel, ptr, gridDim, blockDim);
-    report("fp32", milliseconds, gflops, gbytes);
+    measurement measurement;
+    measurement = run_kernel(stream, deviceProperties, (void *) &fp32_kernel, ptr, gridDim, blockDim
+#if defined(HAVE_PMT)
+    , pmt
+#endif
+        );
+    report("fp32", measurement, gflops, gbytes);
 
     // Free memory
     cudaFree(ptr);
