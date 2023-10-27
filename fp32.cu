@@ -1,29 +1,31 @@
 #include "common.h"
 
-__global__ void fp32_kernel(float *ptr);
+__global__ void fp32_kernel(float* ptr);
 
-int main(int argc, char *argv[]) {
-    Benchmark benchmark;
+int main(int argc, char* argv[]) {
+  Benchmark benchmark;
 
-    // Parameters
-    int multiProcessorCount = benchmark.multiProcessorCount();
-    int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
+  // Parameters
+  int multiProcessorCount = benchmark.multiProcessorCount();
+  int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
 
-    // Amount of work performed
-    int nr_iterations = 2048;
-    double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) * (1ULL * nr_iterations * 8 * 4096);
-    double gbytes = 0;
+  // Amount of work performed
+  int nr_iterations = 2048;
+  double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) *
+                  (1ULL * nr_iterations * 8 * 4096);
+  double gbytes = 0;
 
-    // Kernel dimensions
-    dim3 grid(multiProcessorCount);
-    dim3 block(maxThreadsPerBlock);
+  // Kernel dimensions
+  dim3 grid(multiProcessorCount);
+  dim3 block(maxThreadsPerBlock);
 
-    benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+  benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
-    // Run benchmark
-    for (int i = 0; i < NR_BENCHMARKS; i++) {
-        benchmark.run(reinterpret_cast<void *>(&fp32_kernel), grid, block, "fp32", gflops, gbytes);
-    }
+  // Run benchmark
+  for (int i = 0; i < NR_BENCHMARKS; i++) {
+    benchmark.run(reinterpret_cast<void*>(&fp32_kernel), grid, block, "fp32",
+                  gflops, gbytes);
+  }
 
-    return EXIT_SUCCESS;
+  return EXIT_SUCCESS;
 }
