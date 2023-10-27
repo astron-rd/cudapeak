@@ -2,17 +2,12 @@
 
 __global__ void fp32_kernel(float *ptr);
 
-void run(
-    cudaStream_t stream,
-    cudaDeviceProp deviceProperties
-#if defined(HAVE_PMT)
-    , std::shared_ptr<pmt::PMT> pmt
-#endif
-)
-{
+int main(int argc, char *argv[]) {
+    Benchmark benchmark;
+
     // Parameters
-    int multiProcessorCount = deviceProperties.multiProcessorCount;
-    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+    int multiProcessorCount = benchmark.multiProcessorCount();
+    int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
 
     // Amount of work performed
     int nr_iterations = 2048;
@@ -20,22 +15,15 @@ void run(
     double gbytes = 0;
 
     // Kernel dimensions
-    dim3 gridDim(multiProcessorCount);
-    dim3 blockDim(maxThreadsPerBlock);
+    dim3 grid(multiProcessorCount);
+    dim3 block(maxThreadsPerBlock);
 
-    // Allocate memory
-    float *ptr;
-    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+    benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
-    // Run kernel
-    measurement measurement;
-    measurement = run_kernel(stream, deviceProperties, (void *) &fp32_kernel, ptr, gridDim, blockDim
-#if defined(HAVE_PMT)
-    , pmt
-#endif
-        );
-    report("fp32", measurement, gflops, gbytes);
+    // Run benchmark
+    for (int i = 0; i < NR_BENCHMARKS; i++) {
+        benchmark.run(reinterpret_cast<void *>(&fp32_kernel), grid, block, "fp32", gflops, gbytes);
+    }
 
-    // Free memory
-    cudaFree(ptr);
+    return EXIT_SUCCESS;
 }

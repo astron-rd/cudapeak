@@ -14,13 +14,12 @@ __global__ void fp32_int32_16_1(float *ptr);
 __global__ void fp32_int32_32_1(float *ptr);
 __global__ void fp32_int32_64_1(float *ptr);
 
-void run(
-    cudaStream_t stream,
-    cudaDeviceProp deviceProperties)
-{
+int main(int argc, char *argv[]) {
+    Benchmark benchmark;
+
     // Parameters
-    int multiProcessorCount = deviceProperties.multiProcessorCount;
-    int maxThreadsPerBlock = deviceProperties.maxThreadsPerBlock;
+    int multiProcessorCount = benchmark.multiProcessorCount();
+    int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
 
     // Amount of work performed
     int nr_iterations = 2048;
@@ -28,54 +27,28 @@ void run(
     double gbytes = 0;
 
     // Kernel dimensions
-    dim3 gridDim(multiProcessorCount);
-    dim3 blockDim(maxThreadsPerBlock);
+    dim3 grid(multiProcessorCount);
+    dim3 block(maxThreadsPerBlock);
 
     // Allocate memory
-    float *ptr;
-    cudaMalloc(&ptr, multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+    benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
-    // Run kernels
-    double milliseconds;
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_64, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   1:64", milliseconds, gflops/64, gbytes, gflops);
+    // Run benchmark
+    for (int i = 0; i < NR_BENCHMARKS; i++) {
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_64), grid, block, "fp32:int32 ->  1:64", gflops/64, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_32), grid, block, "fp32:int32 ->  1:32", gflops/32, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_16), grid, block, "fp32:int32 ->  1:16", gflops/16, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_8),  grid, block, "fp32:int32 ->   1:8", gflops/8, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_4),  grid, block, "fp32:int32 ->   1:4", gflops/4, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_2),  grid, block, "fp32:int32 ->   1:2", gflops/2, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_1_1),  grid, block, "fp32:int32 ->   1:1", gflops, gbytes, gflops);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_2_1),  grid, block, "fp32:int32 ->   2:1", gflops, gbytes, gflops/2);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_4_1),  grid, block, "fp32:int32 ->   4:1", gflops, gbytes, gflops/4);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_8_1),  grid, block, "fp32:int32 ->   8:1", gflops, gbytes, gflops/8);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_16_1), grid, block, "fp32:int32 ->  16:1", gflops, gbytes, gflops/16);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_32_1), grid, block, "fp32:int32 ->  32:1", gflops, gbytes, gflops/32);
+        benchmark.run(reinterpret_cast<void *>(&fp32_int32_64_1), grid, block, "fp32:int32 ->  64:1", gflops, gbytes, gflops/64);
+    }
 
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_32, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   1:32", milliseconds, gflops/32, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_16, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   1:16", milliseconds, gflops/16, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_8, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    1:8", milliseconds, gflops/8, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_4, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    1:4", milliseconds, gflops/4, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_2, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    1:2", milliseconds, gflops/2, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_1_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    1:1", milliseconds, gflops, gbytes, gflops);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_2_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    2:1", milliseconds, gflops, gbytes, gflops/2);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_4_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    4:1", milliseconds, gflops, gbytes, gflops/4);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_8_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->    8:1", milliseconds, gflops, gbytes, gflops/8);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_16_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   16:1", milliseconds, gflops, gbytes, gflops/16);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_32_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   32:1", milliseconds, gflops, gbytes, gflops/32);
-
-    milliseconds = run_kernel(stream, deviceProperties, (void *) &fp32_int32_64_1, ptr, gridDim, blockDim);
-    report("fp32:int32 ->   64:1", milliseconds, gflops, gbytes, gflops/64);
-
-    // Free memory
-    cudaFree(ptr);
+    return EXIT_SUCCESS;
 }

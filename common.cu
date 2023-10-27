@@ -18,11 +18,13 @@ void report(
     if (gflops != 0) {
         cout << ", " << setw(w2) << gflops / seconds * 1e-3 << " TFlops/s";
     }
-    if (power != 0) {
+    if (power > 1) {
         cout << ", " << setw(w2) << power << " W";
-        double efficiency = gflops / seconds / power;
-        if (efficiency < 1e4) {
+        if (gflops != 0) {
             cout << ", " << setw(w2) << gflops / seconds / power << " GFlops/W";
+        }
+        if (gops != 0) {
+            cout << ", " << setw(w2) << gops / seconds / power << " GOps/W";
         }
     }
     if (gbytes != 0) {
@@ -47,83 +49,84 @@ unsigned roundToPowOf2(unsigned number) {
 }
 
 
-measurement run_kernel(
-    cudaStream_t stream,
-    cudaDeviceProp deviceProperties,
-    void *kernel,
-    void *ptr,
-    dim3 gridDim,
-    dim3 blockDim
-#if defined(HAVE_PMT)
-    , std::shared_ptr<pmt::PMT> pmt
-#endif
-    ) {
-    // Setup events
-    cudaEvent_t start, stop;
-    cudaEventCreate(&start);
-    cudaEventCreate(&stop);
+Benchmark::Benchmark() {
+    // Read device number from environment
+    char *cstr_device_number = getenv("CUDA_DEVICE");
+    unsigned device_number = cstr_device_number ? atoi (cstr_device_number) : 0;
 
+    // Setup CUDA
+    cudaSetDevice(device_number);
+    cudaStreamCreate(&stream_);
+    cudaGetDeviceProperties(&device_properties_, device_number);
+    cudaEventCreate(&event_start_);
+    cudaEventCreate(&event_end_);
+
+    // Print CUDA device information
+    std::cout << "Device " << device_number << ": " << device_properties_.name;
+    std::cout << " (" << device_properties_.multiProcessorCount <<  "SMs, ";
+    std::cout << device_properties_.clockRate * 1e-6 << " Ghz)" << std::endl;
+
+#if defined(HAVE_PMT)
+    pm_= std::move(pmt::nvml::NVML::Create());
+#endif
+}
+
+Benchmark::~Benchmark() {
+    if (data_) {
+        cudaFree(data_);
+    }
+    cudaStreamSynchronize(stream_);
+    cudaStreamDestroy(stream_);
+    cudaEventDestroy(event_start_);
+    cudaEventDestroy(event_end_);
+}
+
+void Benchmark::allocate(size_t bytes) {
+    if (data_) {
+        cudaFree(data_);
+    }
+    cudaMalloc(&data_, bytes);
+    data_bytes_ = bytes;
+}
+
+void Benchmark::run(void *kernel, dim3 grid, dim3 block, const char *name, double gflops, double gbytes, double gops) {
+    measurement measurement = run_kernel(kernel, grid, block);
+    report(name, measurement, gflops, gbytes, gops);
+}
+
+
+measurement Benchmark::run_kernel(
+    void *kernel,
+    dim3 grid,
+    dim3 block
+    ) {
     // Warmup
-    ((void (*)(void *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
+    ((void (*)(void *)) kernel)<<<grid, block, 0, stream_>>>(data_);
+    cudaMemset(data_, 1, data_bytes_);
 
     // Benchmark
-    cudaEventRecord(start, stream);
+    cudaEventRecord(event_start_, stream_);
 #if defined(HAVE_PMT)
-    pmt::State state_start = pmt->Read();
+    pmt::State state_start = pm_->Read();
 #endif
     for (int i = 0; i < NR_ITERATIONS; i++) {
-        ((void (*)(void *)) kernel)<<<gridDim, blockDim, 0, stream>>>(ptr);
+        ((void (*)(void *)) kernel)<<<grid, block, 0, stream_>>>(data_);
     }
-    cudaEventRecord(stop, stream);
+    cudaEventRecord(event_end_, stream_);
 #if defined(HAVE_PMT)
-    pmt::State state_end = pmt->Read();
+    pmt::State state_end = pm_->Read();
 #endif
 
     // Finish measurement
-    cudaEventSynchronize(stop);
+    cudaEventSynchronize(event_end_);
     float milliseconds = 0;
-    cudaEventElapsedTime(&milliseconds, start, stop);
-
+    cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
     measurement measurement;
     measurement.runtime = milliseconds / NR_ITERATIONS;
-    measurement.energy = 0;
+    measurement.power = 0;
 #if defined(HAVE_PMT)
-    measurement.energy = pmt::PMT::joules(state_start, state_end) / NR_ITERATIONS;
     measurement.power = pmt::PMT::watts(state_start, state_end);
 #endif
-
     return measurement;
 }
 
-int main() {
-    // Read device number from environment
-    char *cstr_deviceNumber = getenv("CUDA_DEVICE");
-    unsigned deviceNumber = cstr_deviceNumber ? atoi (cstr_deviceNumber) : 0;
-
-    // Setup CUDA
-    cudaSetDevice(deviceNumber);
-    cudaStream_t stream;
-    cudaStreamCreate(&stream);
-    cudaDeviceProp deviceProperties;
-    cudaGetDeviceProperties(&deviceProperties, deviceNumber);
-
-    // Print CUDA device information
-    std::cout << "Device " << deviceNumber << ": " << deviceProperties.name;
-    std::cout << " (" << deviceProperties.multiProcessorCount <<  "SMs, ";
-    std::cout << deviceProperties.clockRate * 1e-6 << " Ghz)" << std::endl;
-
-    // Run benchmark
-#if defined(HAVE_PMT)
-    std::unique_ptr<pmt::PMT> pmt_ = pmt::nvml::NVML::Create();
-    std::shared_ptr<pmt::PMT> pmt = std::move(pmt_);
-#endif
-    for (int i = 0; i < NR_BENCHMARKS; i++) {
-       run(stream, deviceProperties
-#if defined(HAVE_PMT)
-       , pmt
-#endif
-       );
-    }
-
-    return EXIT_SUCCESS;
-}
