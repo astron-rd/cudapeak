@@ -1,3 +1,5 @@
+#include <sstream>
+
 #include "common.h"
 
 __global__ void fp32_kernel(float* ptr);

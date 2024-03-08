@@ -1,7 +1,10 @@
-cmake_minimum_required(VERSION 3.12)
-project(CUDA_Project)
+cmake_minimum_required(VERSION 3.17)
+project(cudapeak LANGUAGES CXX CUDA)
 
-find_package(CUDA REQUIRED)
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_BUILD_TYPE Release)
+
+find_package(CUDAToolkit REQUIRED)
 
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 
@@ -17,8 +20,7 @@ foreach(source_file ${CUDA_SOURCES})
   get_filename_component(executable_name ${source_file} NAME_WE)
   get_filename_component(kernel_file ${source_file} NAME)
   set(KERNEL_FILE "${CMAKE_SOURCE_DIR}/kernels/${kernel_file}")
-  cuda_add_executable(${executable_name} ${source_file} ${KERNEL_FILE}
-                      common.cu)
+  add_executable(${executable_name} ${source_file} ${KERNEL_FILE} common.cu)
   if(BUILD_WITH_PMT)
     target_link_libraries(${executable_name} pmt)
   endif()
