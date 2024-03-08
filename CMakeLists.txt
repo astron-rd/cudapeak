@@ -9,7 +9,11 @@ find_package(CUDAToolkit REQUIRED)
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 
 if(BUILD_WITH_PMT)
-  find_package(pmt)
+  include(FetchContent)
+  set(PMT_BUILD_TESTS OFF)
+  set(BUILD_NVML_PMT ON)
+  FetchContent_Declare(pmt GIT_REPOSITORY https://git.astron.nl/RD/pmt)
+  FetchContent_MakeAvailable(pmt)
   add_compile_definitions("HAVE_PMT")
 endif()
 
