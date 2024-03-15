@@ -2,6 +2,7 @@
 
 __global__ void mma8_kernel(void* ptr);
 __global__ void mma16_kernel(void* ptr);
+__global__ void mma32_kernel(void* ptr);
 
 int main(int argc, char* argv[]) {
   Benchmark benchmark;
@@ -36,9 +37,11 @@ int main(int argc, char* argv[]) {
   // Run benchmark
   for (int i = 0; i < NR_BENCHMARKS; i++) {
     benchmark.run(reinterpret_cast<void*>(&mma8_kernel), grid, block,
-                  "mma_8bit", gflops, gbytes);
+                  "mma_8bit", gflops, gbytes);  // k = 16
     benchmark.run(reinterpret_cast<void*>(&mma16_kernel), grid, block,
-                  "mma_16bit", gflops, gbytes);
+                  "mma_16bit", gflops, gbytes);  // k = 16
+    benchmark.run(reinterpret_cast<void*>(&mma32_kernel), grid, block,
+                  "mma_32bit", gflops / 2, gbytes);  // k = 8
   }
 
   return EXIT_SUCCESS;
