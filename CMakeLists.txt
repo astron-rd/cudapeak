@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.17)
 project(cudapeak LANGUAGES CXX CUDA)
 
-set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
 find_package(CUDAToolkit REQUIRED)
@@ -10,8 +10,7 @@ option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 
 if(BUILD_WITH_PMT)
   include(FetchContent)
-  set(PMT_BUILD_TESTS OFF)
-  set(BUILD_NVML_PMT ON)
+  set(PMT_BUILD_NVML ON)
   FetchContent_Declare(pmt GIT_REPOSITORY https://git.astron.nl/RD/pmt)
   FetchContent_MakeAvailable(pmt)
   add_compile_definitions("HAVE_PMT")
