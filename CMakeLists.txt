@@ -4,6 +4,10 @@ project(cudapeak LANGUAGES CXX CUDA)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
+set(CMAKE_CUDA_ARCHITECTURES
+    "86"
+    CACHE STRING "CUDA architecture")
+
 find_package(CUDAToolkit REQUIRED)
 
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
