@@ -10,8 +10,8 @@ __global__ void fp32_dmem_64(float4* ptr);
 __global__ void fp32_dmem_128(float4* ptr);
 __global__ void fp32_dmem_256(float4* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(numItems * sizeof(float4));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_01), grid, block,
                   "flop:byte ->   1:1", 1 * gflops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_02), grid, block,

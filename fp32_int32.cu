@@ -14,8 +14,8 @@ __global__ void fp32_int32_16_1(float* ptr);
 __global__ void fp32_int32_32_1(float* ptr);
 __global__ void fp32_int32_64_1(float* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -35,7 +35,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_int32_1_64), grid, block,
                   "fp32:int32 ->  1:64", gflops / 64, gbytes, gflops);
     benchmark.run(reinterpret_cast<void*>(&fp32_int32_1_32), grid, block,

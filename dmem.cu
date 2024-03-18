@@ -2,8 +2,8 @@
 
 __global__ void dmem_kernel(float* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
@@ -23,7 +23,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(numItems * sizeof(float));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&dmem_kernel), grid, block, "dmem",
                   gflops, gbytes);
   }

@@ -12,8 +12,8 @@ __global__ void fp32_sincos_sfu_32_1(float* ptr);
 __global__ void fp32_sincos_sfu_64_1(float* ptr);
 __global__ void fp32_sincos_sfu_128_1(float* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_sincos_sfu_1_8), grid, block,
                   "fma:sincos (sfu) ->    1:8", gflops, gbytes, gflops * 8);
     benchmark.run(reinterpret_cast<void*>(&fp32_sincos_sfu_1_4), grid, block,

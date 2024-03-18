@@ -2,8 +2,8 @@
 
 __global__ void int32_kernel(int* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(int));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&int32_kernel), grid, block, "int32",
                   gflops, gbytes, gops);
   }

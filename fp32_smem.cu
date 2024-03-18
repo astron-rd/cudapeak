@@ -9,8 +9,8 @@ __global__ void fp32_smem_32(float* ptr);
 __global__ void fp32_smem_64(float* ptr);
 __global__ void fp32_smem_128(float* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(fetchPerBlock * 4 * sizeof(float));
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_smem_01), grid, block,
                   "flop:byte ->  1:2", gflops, gbytes / 1);
     benchmark.run(reinterpret_cast<void*>(&fp32_smem_02), grid, block,
