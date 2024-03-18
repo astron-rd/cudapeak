@@ -23,6 +23,10 @@ __device__ void mma_kernel(Tout* data) {
   store_matrix_sync(ptr, sum, N, mem_row_major);
 }
 
+__global__ void mma4_kernel(void* data) {
+  mma_kernel<experimental::precision::s4, int, 8, 8, 32>((int*)data);
+}
+
 __global__ void mma8_kernel(void* data) {
   mma_kernel<signed char, int, 16, 16, 16>((int*)data);
 }
