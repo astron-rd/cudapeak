@@ -118,6 +118,10 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
   std::cout << " (" << device_properties_.multiProcessorCount << "SMs, ";
   std::cout << device_properties_.clockRate * 1e-6 << " Ghz)" << std::endl;
 
+  // Warmup
+  cudaMemsetAsync(data_, 1, data_bytes_, stream_);
+  cudaStreamSynchronize(stream_);
+
 #if defined(HAVE_PMT)
   pm_ = std::move(pmt::nvml::NVML::Create());
 #endif
@@ -148,10 +152,6 @@ void Benchmark::run(void* kernel, dim3 grid, dim3 block, const char* name,
 }
 
 measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
-  // Warmup (the first kernel launch may take longer)
-  ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
-  cudaMemsetAsync(data_, 1, data_bytes_, stream_);
-
 // Benchmark with power measurement
 #if defined(HAVE_PMT)
   if (measurePower()) {
