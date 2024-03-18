@@ -12,13 +12,6 @@
 
 using namespace std;
 
-// Number of times to run each kernel
-#define NR_ITERATIONS 1
-
-// Number of times to run each benchmark
-#define NR_BENCHMARKS 5
-
-// Helper functions
 unsigned roundToPowOf2(unsigned number);
 
 typedef struct {
@@ -32,7 +25,7 @@ void report(string name, measurement measurement, double gflops = 0,
 
 class Benchmark {
  public:
-  Benchmark();
+  Benchmark(int argc, const char* argv[]);
   ~Benchmark();
 
   void allocate(size_t bytes);
@@ -43,9 +36,14 @@ class Benchmark {
   int maxThreadsPerBlock() { return device_properties_.maxThreadsPerBlock; }
   size_t totalGlobalMem() { return device_properties_.totalGlobalMem; }
 
+  unsigned nrBenchmarks() { return nr_benchmarks_; }
+  unsigned nrIterations() { return nr_iterations_; }
+
  protected:
   measurement run_kernel(void* kernel, dim3 grid, dim3 block);
 
+  unsigned nr_benchmarks_;
+  unsigned nr_iterations_;
   cudaStream_t stream_;
   cudaDeviceProp device_properties_;
   cudaEvent_t event_start_;

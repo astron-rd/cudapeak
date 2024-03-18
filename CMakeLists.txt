@@ -10,10 +10,17 @@ set(CMAKE_CUDA_ARCHITECTURES
 
 find_package(CUDAToolkit REQUIRED)
 
+include(FetchContent)
+
+FetchContent_Declare(
+  cxxopts
+  GIT_REPOSITORY https://github.com/jarro2783/cxxopts.git
+  GIT_TAG v3.2.0)
+FetchContent_MakeAvailable(cxxopts)
+
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 
 if(BUILD_WITH_PMT)
-  include(FetchContent)
   set(PMT_BUILD_NVML ON)
   FetchContent_Declare(pmt GIT_REPOSITORY https://git.astron.nl/RD/pmt)
   FetchContent_MakeAvailable(pmt)
@@ -28,6 +35,7 @@ foreach(source_file ${CUDA_SOURCES})
   get_filename_component(kernel_file ${source_file} NAME)
   set(KERNEL_FILE "${CMAKE_SOURCE_DIR}/kernels/${kernel_file}")
   add_executable(${executable_name} ${source_file} ${KERNEL_FILE} common.cu)
+  target_link_libraries(${executable_name} cxxopts)
   if(BUILD_WITH_PMT)
     target_link_libraries(${executable_name} pmt)
   endif()

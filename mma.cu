@@ -4,8 +4,8 @@ __global__ void mma8_kernel(void* ptr);
 __global__ void mma16_kernel(void* ptr);
 __global__ void mma32_kernel(void* ptr);
 
-int main(int argc, char* argv[]) {
-  Benchmark benchmark;
+int main(int argc, const char* argv[]) {
+  Benchmark benchmark(argc, argv);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -34,7 +34,7 @@ int main(int argc, char* argv[]) {
   benchmark.allocate(sizeof_data);
 
   // Run benchmark
-  for (int i = 0; i < NR_BENCHMARKS; i++) {
+  for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&mma8_kernel), grid, block,
                   "mma_8bit", gflops, gbytes);  // k = 16
     benchmark.run(reinterpret_cast<void*>(&mma16_kernel), grid, block,

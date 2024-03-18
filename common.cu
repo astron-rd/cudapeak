@@ -1,3 +1,5 @@
+#include <cxxopts.hpp>
+
 #include "common.h"
 
 void report(string name, measurement measurement, double gflops, double gbytes,
@@ -42,10 +44,51 @@ unsigned roundToPowOf2(unsigned number) {
   return (unsigned)pow(2, (int)logd);
 }
 
-Benchmark::Benchmark() {
-  // Read device number from environment
-  char* cstr_device_number = getenv("CUDA_DEVICE");
-  unsigned device_number = cstr_device_number ? atoi(cstr_device_number) : 0;
+cxxopts::Options setupCommandLineParser(const char* argv[]) {
+  cxxopts::Options options(argv[0], "Benchmark for BeamFormerKernel");
+
+  const unsigned NR_BENCHMARKS = 1;
+  const unsigned NR_ITERATIONS = 1;
+  const unsigned DEVICE_ID = 0;
+
+  options.add_options()(
+      "nr_benchmarks", "Number of benchmarks",
+      cxxopts::value<unsigned>()->default_value(std::to_string(NR_BENCHMARKS)))(
+      "nr_iterations", "Number of kernel iteration per benchmark",
+      cxxopts::value<unsigned>()->default_value(std::to_string(NR_ITERATIONS)))(
+      "device_id", "Device ID",
+      cxxopts::value<unsigned>()->default_value(std::to_string(DEVICE_ID)))(
+      "h,help", "Print help");
+
+  return options;
+}
+
+cxxopts::ParseResult getCommandLineOptions(int argc, const char* argv[]) {
+  cxxopts::Options options = setupCommandLineParser(argv);
+
+  try {
+    cxxopts::ParseResult result = options.parse(argc, argv);
+
+    if (result.count("help")) {
+      std::cout << options.help() << std::endl;
+      exit(EXIT_SUCCESS);
+    }
+
+    return result;
+
+  } catch (const cxxopts::exceptions::exception& e) {
+    std::cerr << "Error parsing command-line options: " << e.what()
+              << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+Benchmark::Benchmark(int argc, const char* argv[]) {
+  // Parse command-line options
+  cxxopts::ParseResult results = getCommandLineOptions(argc, argv);
+  const unsigned device_number = results["device_id"].as<unsigned>();
+  nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
+  nr_iterations_ = results["nr_iterations"].as<unsigned>();
 
   // Setup CUDA
   cudaSetDevice(device_number);
@@ -98,7 +141,7 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
 #if defined(HAVE_PMT)
   pmt::State state_start = pm_->Read();
 #endif
-  for (int i = 0; i < NR_ITERATIONS; i++) {
+  for (int i = 0; i < nrIterations(); i++) {
     ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
   }
   cudaEventRecord(event_end_, stream_);
@@ -111,7 +154,7 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
   measurement measurement;
-  measurement.runtime = milliseconds / NR_ITERATIONS;
+  measurement.runtime = milliseconds / nrIterations();
   measurement.power = 0;
 #if defined(HAVE_PMT)
   measurement.power = pmt::PMT::watts(state_start, state_end);
