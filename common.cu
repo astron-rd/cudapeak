@@ -1,3 +1,4 @@
+#include <thread>
 #include <cxxopts.hpp>
 
 #include "common.h"
@@ -49,6 +50,10 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
 
   const unsigned NR_BENCHMARKS = 1;
   const unsigned NR_ITERATIONS = 1;
+#if defined(HAVE_PMT)
+  const unsigned MEASURE_POWER = false;
+  const unsigned BENCHMARK_DURATION = 4000;  // ms
+#endif
   const unsigned DEVICE_ID = 0;
 
   options.add_options()(
@@ -56,6 +61,13 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
       cxxopts::value<unsigned>()->default_value(std::to_string(NR_BENCHMARKS)))(
       "nr_iterations", "Number of kernel iteration per benchmark",
       cxxopts::value<unsigned>()->default_value(std::to_string(NR_ITERATIONS)))(
+#if defined(HAVE_PMT)
+      "measure_power", "Measure power",
+      cxxopts::value<bool>()->default_value(std::to_string(MEASURE_POWER)))(
+      "benchmark_duration", "Approximate number of ms to run the benchmark",
+      cxxopts::value<unsigned>()->default_value(
+          std::to_string(BENCHMARK_DURATION)))(
+#endif
       "device_id", "Device ID",
       cxxopts::value<unsigned>()->default_value(std::to_string(DEVICE_ID)))(
       "h,help", "Print help");
@@ -89,6 +101,10 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
   const unsigned device_number = results["device_id"].as<unsigned>();
   nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
   nr_iterations_ = results["nr_iterations"].as<unsigned>();
+#if defined(HAVE_PMT)
+  measure_power_ = results["measure_power"].as<bool>();
+  benchmark_duration_ = results["benchmark_duration"].as<unsigned>();
+#endif
 
   // Setup CUDA
   cudaSetDevice(device_number);
@@ -132,32 +148,60 @@ void Benchmark::run(void* kernel, dim3 grid, dim3 block, const char* name,
 }
 
 measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
-  // Warmup
+  // Warmup (the first kernel launch may take longer)
   ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
-  cudaMemset(data_, 1, data_bytes_);
+  cudaMemsetAsync(data_, 1, data_bytes_, stream_);
 
-  // Benchmark
-  cudaEventRecord(event_start_, stream_);
+// Benchmark with power measurement
 #if defined(HAVE_PMT)
-  pmt::State state_start = pm_->Read();
+  if (measurePower()) {
+    float milliseconds = 0;
+    unsigned nr_iterations = 0;
+
+    std::thread thread([&] {
+      cudaEventRecord(event_start_, stream_);
+      ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
+      cudaEventRecord(event_end_, stream_);
+      cudaEventSynchronize(event_end_);
+      cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
+      nr_iterations = benchmarkDuration() / milliseconds;
+      cudaEventRecord(event_start_, stream_);
+      for (int i = 0; i < nr_iterations; i++) {
+        ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
+      }
+      cudaEventRecord(event_end_, stream_);
+      cudaEventSynchronize(event_end_);
+      cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
+    });
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
+    pmt::State state_start = pm_->Read();
+    std::this_thread::sleep_for(
+        std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
+    pmt::State state_end = pm_->Read();
+    if (thread.joinable()) {
+      thread.join();
+    }
+
+    measurement measurement;
+    measurement.runtime = milliseconds / nr_iterations;
+    measurement.power = pmt::PMT::watts(state_start, state_end);
+
+    return measurement;
+  }
 #endif
+
+  // Benchmark (timing only)
+  cudaEventRecord(event_start_, stream_);
   for (int i = 0; i < nrIterations(); i++) {
     ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
   }
   cudaEventRecord(event_end_, stream_);
-#if defined(HAVE_PMT)
-  pmt::State state_end = pm_->Read();
-#endif
-
-  // Finish measurement
   cudaEventSynchronize(event_end_);
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
   measurement measurement;
   measurement.runtime = milliseconds / nrIterations();
   measurement.power = 0;
-#if defined(HAVE_PMT)
-  measurement.power = pmt::PMT::watts(state_start, state_end);
-#endif
   return measurement;
 }

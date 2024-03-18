@@ -38,6 +38,10 @@ class Benchmark {
 
   unsigned nrBenchmarks() { return nr_benchmarks_; }
   unsigned nrIterations() { return nr_iterations_; }
+#if defined(HAVE_PMT)
+  unsigned benchmarkDuration() { return benchmark_duration_; }
+  bool measurePower() { return measure_power_; }
+#endif
 
  protected:
   measurement run_kernel(void* kernel, dim3 grid, dim3 block);
@@ -52,6 +56,8 @@ class Benchmark {
   size_t data_bytes_;
 #if defined(HAVE_PMT)
   std::shared_ptr<pmt::PMT> pm_;
+  bool measure_power_;
+  unsigned benchmark_duration_;
 #endif
 };
 
