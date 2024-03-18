@@ -23,8 +23,7 @@ int main(int argc, char* argv[]) {
   int k = 16;
   int nr_ops_per_mma = (m * n * k * (1 /* mul */ + 1 /* add */));
 
-  size_t sizeof_data =
-      nr_thread_blocks * nr_warps_per_thread_block * m * n * sizeof(int);
+  size_t sizeof_data = nr_warps_per_thread_block * m * n * sizeof(int);
 
   // Amount of work performed
   int nr_iterations = 32768;

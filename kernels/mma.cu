@@ -21,8 +21,7 @@ __device__ void mma_kernel(Tout* data) {
     mma_sync(sum, aFrag, bFrag, sum);
   }
 
-  Tout* ptr =
-      &data[blockIdx.x * blockDim.y * M * N + threadIdx.y * M * N + M * N + N];
+  Tout* ptr = &data[threadIdx.y * M * N];
   store_matrix_sync(ptr, sum, N, mem_row_major);
 }
 
