@@ -22,6 +22,7 @@ option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 
 if(BUILD_WITH_PMT)
   set(PMT_BUILD_NVML ON)
+  set(PMT_BUILD_TEGRA ON)
   FetchContent_Declare(pmt GIT_REPOSITORY https://git.astron.nl/RD/pmt)
   FetchContent_MakeAvailable(pmt)
   add_compile_definitions("HAVE_PMT")

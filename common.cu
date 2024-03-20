@@ -123,7 +123,7 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
   cudaStreamSynchronize(stream_);
 
 #if defined(HAVE_PMT)
-  pm_ = std::move(pmt::nvml::NVML::Create());
+  pm_ = std::move(pmt::Create("nvidia"));
 #endif
 }
 
