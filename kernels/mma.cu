@@ -43,18 +43,18 @@ __device__ void mma_kernel_ptx(Tout* data) {
   store_matrix_sync(ptr, sum, N, mem_row_major);
 }
 
-__global__ void mma4_kernel(void* data) {
+__global__ void mma_s4(void* data) {
   mma_kernel_ptx<experimental::precision::s4, int, 8, 8, 32>((int*)data);
 }
 
-__global__ void mma8_kernel(void* data) {
+__global__ void mma_s8(void* data) {
   mma_kernel<signed char, int, 16, 16, 16>((int*)data);
 }
 
-__global__ void mma16_kernel(void* data) {
+__global__ void mma_f16(void* data) {
   mma_kernel<half, float, 16, 16, 16>((float*)data);
 }
 
-__global__ void mma32_kernel(void* data) {
+__global__ void mma_tf32(void* data) {
   mma_kernel<precision::tf32, float, 16, 16, 8>((float*)data);
 }
