@@ -4,6 +4,7 @@ __global__ void mma_b1(void* ptr);
 __global__ void mma_s4(void* ptr);
 __global__ void mma_s8(void* ptr);
 __global__ void mma_f16(void* ptr);
+__global__ void mma_bf16(void* ptr);
 __global__ void mma_tf32(void* ptr);
 
 int main(int argc, const char* argv[]) {
@@ -38,6 +39,8 @@ int main(int argc, const char* argv[]) {
     benchmark.run(reinterpret_cast<void*>(&mma_s8), grid, block, "mma_s8",
                   gflops * (16 * 16 * 16 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_f16), grid, block, "mma_f16",
+                  gflops * (16 * 16 * 16 * 2), gbytes);
+    benchmark.run(reinterpret_cast<void*>(&mma_bf16), grid, block, "mma_bf16",
                   gflops * (16 * 16 * 16 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_tf32), grid, block, "mma_tf32",
                   gflops * (16 * 16 * 8 * 2), gbytes);

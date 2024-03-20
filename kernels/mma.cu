@@ -57,6 +57,10 @@ __global__ void mma_f16(void* data) {
   mma_kernel<half, float, 16, 16, 16>((float*)data);
 }
 
+__global__ void mma_bf16(void* data) {
+  mma_kernel<__nv_bfloat16, float, 16, 16, 16>((float*)data);
+}
+
 __global__ void mma_tf32(void* data) {
   mma_kernel<precision::tf32, float, 16, 16, 8>((float*)data);
 }
