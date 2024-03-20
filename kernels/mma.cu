@@ -43,6 +43,28 @@ __device__ void mma_kernel_ptx(Tout* data) {
   store_matrix_sync(ptr, sum, N, mem_row_major);
 }
 
+template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K>
+__device__ void bmma_kernel(Tout* data) {
+  fragment<accumulator, M, N, K, Tout> sum;
+  fragment<matrix_a, M, N, K, Tin, row_major> aFrag;
+  fragment<matrix_b, M, N, K, Tin, col_major> bFrag;
+
+  fill_fragment(sum, 0);
+  fill_fragment(aFrag, 0);
+  fill_fragment(bFrag, 0);
+
+  for (unsigned k = 0; k < REPEAT_COUNT; k++) {
+    bmma_sync(sum, aFrag, bFrag, sum);
+  }
+
+  Tout* ptr = &data[threadIdx.y * M * N];
+  store_matrix_sync(ptr, sum, N, mem_row_major);
+}
+
+__global__ void mma_b1(void* data) {
+  bmma_kernel<experimental::precision::b1, int, 8, 8, 128>((int*)data);
+}
+
 __global__ void mma_s4(void* data) {
   mma_kernel_ptx<experimental::precision::s4, int, 8, 8, 32>((int*)data);
 }
