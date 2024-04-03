@@ -52,7 +52,7 @@ class Benchmark {
   cudaDeviceProp device_properties_;
   cudaEvent_t event_start_;
   cudaEvent_t event_end_;
-  void* data_;
+  void* data_ = nullptr;
   size_t data_bytes_;
 #if defined(HAVE_PMT)
   std::shared_ptr<pmt::PMT> pm_;

@@ -112,15 +112,12 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
   cudaGetDeviceProperties(&device_properties_, device_number);
   cudaEventCreate(&event_start_);
   cudaEventCreate(&event_end_);
+  cudaDeviceSynchronize();
 
   // Print CUDA device information
   std::cout << "Device " << device_number << ": " << device_properties_.name;
   std::cout << " (" << device_properties_.multiProcessorCount << "SMs, ";
   std::cout << device_properties_.clockRate * 1e-6 << " Ghz)" << std::endl;
-
-  // Warmup
-  cudaMemsetAsync(data_, 1, data_bytes_, stream_);
-  cudaStreamSynchronize(stream_);
 
 #if defined(HAVE_PMT)
   pm_ = std::move(pmt::Create("nvidia"));
@@ -142,6 +139,7 @@ void Benchmark::allocate(size_t bytes) {
     cudaFree(data_);
   }
   cudaMalloc(&data_, bytes);
+  cudaMemsetAsync(data_, 1, bytes, stream_);
   data_bytes_ = bytes;
 }
 
