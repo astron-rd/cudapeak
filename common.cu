@@ -3,6 +3,16 @@
 
 #include "common.h"
 
+inline void __checkCudaCall(cudaError_t err, const char* file, int line) {
+  if (err != cudaSuccess) {
+    std::cerr << "CUDA error in " << file << " at line " << line << ": "
+              << cudaGetErrorString(err) << std::endl;
+    exit(EXIT_FAILURE);
+  }
+}
+
+#define checkCudaCall(err) __checkCudaCall(err, __FILE__, __LINE__)
+
 void report(string name, measurement measurement, double gflops, double gbytes,
             double gops) {
   double milliseconds = measurement.runtime;
@@ -107,12 +117,12 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
 #endif
 
   // Setup CUDA
-  cudaSetDevice(device_number);
-  cudaStreamCreate(&stream_);
-  cudaGetDeviceProperties(&device_properties_, device_number);
-  cudaEventCreate(&event_start_);
-  cudaEventCreate(&event_end_);
-  cudaDeviceSynchronize();
+  checkCudaCall(cudaSetDevice(device_number));
+  checkCudaCall(cudaStreamCreate(&stream_));
+  checkCudaCall(cudaGetDeviceProperties(&device_properties_, device_number));
+  checkCudaCall(cudaEventCreate(&event_start_));
+  checkCudaCall(cudaEventCreate(&event_end_));
+  checkCudaCall(cudaDeviceSynchronize());
 
   // Print CUDA device information
   std::cout << "Device " << device_number << ": " << device_properties_.name;
@@ -126,20 +136,20 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
 
 Benchmark::~Benchmark() {
   if (data_) {
-    cudaFree(data_);
+    checkCudaCall(cudaFree(data_));
   }
-  cudaStreamSynchronize(stream_);
-  cudaStreamDestroy(stream_);
-  cudaEventDestroy(event_start_);
-  cudaEventDestroy(event_end_);
+  checkCudaCall(cudaStreamSynchronize(stream_));
+  checkCudaCall(cudaStreamDestroy(stream_));
+  checkCudaCall(cudaEventDestroy(event_start_));
+  checkCudaCall(cudaEventDestroy(event_end_));
 }
 
 void Benchmark::allocate(size_t bytes) {
   if (data_) {
-    cudaFree(data_);
+    checkCudaCall(cudaFree(data_));
   }
-  cudaMalloc(&data_, bytes);
-  cudaMemsetAsync(data_, 1, bytes, stream_);
+  checkCudaCall(cudaMalloc(&data_, bytes));
+  checkCudaCall(cudaMemsetAsync(data_, 1, bytes, stream_));
   data_bytes_ = bytes;
 }
 
@@ -157,19 +167,21 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
     unsigned nr_iterations = 0;
 
     std::thread thread([&] {
-      cudaEventRecord(event_start_, stream_);
+      checkCudaCall(cudaEventRecord(event_start_, stream_));
       ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
-      cudaEventRecord(event_end_, stream_);
-      cudaEventSynchronize(event_end_);
-      cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
+      checkCudaCall(cudaEventRecord(event_end_, stream_));
+      checkCudaCall(cudaEventSynchronize(event_end_));
+      checkCudaCall(
+          cudaEventElapsedTime(&milliseconds, event_start_, event_end_));
       nr_iterations = benchmarkDuration() / milliseconds;
-      cudaEventRecord(event_start_, stream_);
+      checkCudaCall(cudaEventRecord(event_start_, stream_));
       for (int i = 0; i < nr_iterations; i++) {
         ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
       }
-      cudaEventRecord(event_end_, stream_);
-      cudaEventSynchronize(event_end_);
-      cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
+      checkCudaCall(cudaEventRecord(event_end_, stream_));
+      checkCudaCall(cudaEventSynchronize(event_end_));
+      checkCudaCall(
+          cudaEventElapsedTime(&milliseconds, event_start_, event_end_));
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
@@ -190,11 +202,11 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
 #endif
 
   // Benchmark (timing only)
-  cudaEventRecord(event_start_, stream_);
+  checkCudaCall(cudaEventRecord(event_start_, stream_));
   for (int i = 0; i < nrIterations(); i++) {
     ((void (*)(void*))kernel)<<<grid, block, 0, stream_>>>(data_);
   }
-  cudaEventRecord(event_end_, stream_);
+  checkCudaCall(cudaEventRecord(event_end_, stream_));
   cudaEventSynchronize(event_end_);
   float milliseconds = 0;
   cudaEventElapsedTime(&milliseconds, event_start_, event_end_);
