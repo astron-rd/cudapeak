@@ -19,6 +19,7 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(cxxopts)
 
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
+option(BUILD_KERNEL_DEBUG "Build CUDA kernels in debug mode")
 
 if(BUILD_WITH_PMT)
   set(PMT_BUILD_NVML ON)
@@ -43,4 +44,9 @@ foreach(source_file ${CUDA_SOURCES})
   set(KERNEL_FILE "${CMAKE_SOURCE_DIR}/kernels/${kernel_file}")
   add_executable(${executable_name} ${source_file} ${KERNEL_FILE})
   target_link_libraries(${executable_name} common)
+  if(BUILD_KERNEL_DEBUG)
+    target_compile_options(
+      ${executable_name} PRIVATE $<$<COMPILE_LANGUAGE:CUDA>: -g
+                                 --generate-line-info >)
+  endif()
 endforeach()
