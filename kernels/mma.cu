@@ -26,6 +26,7 @@ __device__ void mma_kernel(Tout* data) {
 }
 
 #include "mma_m8n8k32_s32s4s4s32.cuh"
+#include "mma_m16n8k256_s32b1b1s32.cuh"
 
 template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K>
 __device__ void mma_kernel_ptx(Tout* data) {
@@ -34,15 +35,32 @@ __device__ void mma_kernel_ptx(Tout* data) {
   END
 }
 
-template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K>
+template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K,
+          experimental::bmmaBitOp bitOp>
 __device__ void bmma_kernel(Tout* data) {
   START
-  bmma_sync(sum, aFrag, bFrag, sum);
+  bmma_sync(sum, aFrag, bFrag, sum, bitOp);
   END
 }
 
-__global__ void mma_b1(void* data) {
-  bmma_kernel<experimental::precision::b1, int, 8, 8, 128>((int*)data);
+__global__ void mma_b1_8_8_128_xor(void* data) {
+  bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
+              experimental::bmmaBitOpXOR>((int*)data);
+}
+
+__global__ void mma_b1_16_8_256_xor(void* data) {
+  bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
+              experimental::bmmaBitOpXOR>((int*)data);
+}
+
+__global__ void mma_b1_8_8_128_and(void* data) {
+  bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
+              experimental::bmmaBitOpAND>((int*)data);
+}
+
+__global__ void mma_b1_16_8_256_and(void* data) {
+  bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
+              experimental::bmmaBitOpAND>((int*)data);
 }
 
 __global__ void mma_s4(void* data) {
