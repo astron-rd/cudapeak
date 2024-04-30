@@ -1,0 +1,12 @@
+stages:
+  - linting
+
+format:
+  stage: linting
+  image: ubuntu:24.04
+  before_script:
+    - apt update -qq
+    - apt install -y -qq git python3-pip
+    - apt install -y clang-format-14 cmake-format pre-commit
+  script:
+    - pre-commit run -a
