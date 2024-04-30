@@ -43,42 +43,42 @@ __device__ void bmma_kernel(Tout* data) {
   END
 }
 
-__global__ void mma_b1_8_8_128_xor(void* data) {
+__global__ void bmma_b1_8_8_128_xor(void* data) {
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpXOR>((int*)data);
 }
 
-__global__ void mma_b1_16_8_256_xor(void* data) {
+__global__ void bmma_b1_16_8_256_xor(void* data) {
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpXOR>((int*)data);
 }
 
-__global__ void mma_b1_8_8_128_and(void* data) {
+__global__ void bmma_b1_8_8_128_and(void* data) {
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpAND>((int*)data);
 }
 
-__global__ void mma_b1_16_8_256_and(void* data) {
+__global__ void bmma_b1_16_8_256_and(void* data) {
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpAND>((int*)data);
 }
 
-__global__ void mma_s4(void* data) {
+__global__ void mma_s4_8_8_32(void* data) {
   mma_kernel_ptx<experimental::precision::s4, int, 8, 8, 32>((int*)data);
 }
 
-__global__ void mma_s8(void* data) {
+__global__ void mma_s8_16_16_16(void* data) {
   mma_kernel<signed char, int, 16, 16, 16>((int*)data);
 }
 
-__global__ void mma_f16(void* data) {
+__global__ void mma_f16_16_16_16(void* data) {
   mma_kernel<half, float, 16, 16, 16>((float*)data);
 }
 
-__global__ void mma_bf16(void* data) {
+__global__ void mma_bf16_16_16_16(void* data) {
   mma_kernel<__nv_bfloat16, float, 16, 16, 16>((float*)data);
 }
 
-__global__ void mma_tf32(void* data) {
+__global__ void mma_tf32_16_16_8(void* data) {
   mma_kernel<precision::tf32, float, 16, 16, 8>((float*)data);
 }
