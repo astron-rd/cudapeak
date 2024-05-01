@@ -30,7 +30,7 @@ class Benchmark {
 
   void allocate(size_t bytes);
   void run(void* kernel, dim3 grid, dim3 block, const char* name,
-           double gflops = 0, double gbytes = 0, double gops = 0);
+           double gops = 0, double gbytes = 0);
 
   int multiProcessorCount() { return device_properties_.multiProcessorCount; }
   int maxThreadsPerBlock() { return device_properties_.maxThreadsPerBlock; }

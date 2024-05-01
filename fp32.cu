@@ -11,9 +11,9 @@ int main(int argc, const char* argv[]) {
 
   // Amount of work performed
   int nr_iterations = 2048;
-  double gflops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) *
-                  (1ULL * nr_iterations * 8 * 4096);
-  double gbytes = 0;
+  const double gops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) *
+                      (1ULL * nr_iterations * 8 * 4096);
+  const double gbytes = 0;
 
   // Kernel dimensions
   dim3 grid(multiProcessorCount);
@@ -24,7 +24,7 @@ int main(int argc, const char* argv[]) {
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_kernel), grid, block, "fp32",
-                  gflops, gbytes);
+                  gops, gbytes);
   }
 
   return EXIT_SUCCESS;

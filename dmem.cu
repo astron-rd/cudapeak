@@ -12,8 +12,8 @@ int main(int argc, const char* argv[]) {
   unsigned fetchPerBlock = 16;
   int maxItems = benchmark.totalGlobalMem() / sizeof(float) / 2;
   int numItems = roundToPowOf2(maxItems);
-  double gbytes = (float)(numItems / fetchPerBlock) * sizeof(float) / 1e9;
-  double gflops = 0;
+  const double gops = 0;
+  const double gbytes = (float)(numItems / fetchPerBlock) * sizeof(float) / 1e9;
 
   // Kernel dimensions
   dim3 grid(numItems / (fetchPerBlock * maxThreadsPerBlock));
@@ -25,7 +25,7 @@ int main(int argc, const char* argv[]) {
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&dmem_kernel), grid, block, "dmem",
-                  gflops, gbytes);
+                  gops, gbytes);
   }
 
   return EXIT_SUCCESS;
