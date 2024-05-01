@@ -13,38 +13,55 @@ inline void __checkCudaCall(cudaError_t err, const char* file, int line) {
 
 #define checkCudaCall(err) __checkCudaCall(err, __FILE__, __LINE__)
 
-void report(string name, measurement measurement, double gflops, double gbytes,
-            double gops) {
-  double milliseconds = measurement.runtime;
-  double power = measurement.power;
-  int w1 = 20;
-  int w2 = 7;
-  cout << setw(w1) << string(name) << ": ";
-  cout << setprecision(2) << fixed;
-  cout << setw(w2) << milliseconds << " ms";
-  double seconds = milliseconds * 1e-3;
-  if (gflops != 0) {
-    cout << ", " << setw(w2) << gflops / seconds * 1e-3 << " TFlops/s";
-  }
-  if (power > 1) {
-    cout << ", " << setw(w2) << power << " W";
-    if (gflops != 0) {
-      cout << ", " << setw(w2) << gflops / seconds / power << " GFlops/W";
-    }
-    if (gops != 0) {
-      cout << ", " << setw(w2) << gops / seconds / power << " GOps/W";
-    }
-  }
-  if (gbytes != 0) {
-    cout << ", " << setw(w2) << gbytes / seconds << " GB/s";
-  }
-  if (gflops != 0 && gbytes != 0) {
-    float arithmetic_intensity = gflops / gbytes;
-    cout << ", " << setw(w2) << arithmetic_intensity << " Flop/byte";
-  }
+static constexpr int w1 = 20;
+static constexpr int w2 = 7;
+
+void print_ops(double gops, measurement& m) {
+  const double seconds = m.runtime * 1e-3;
   if (gops != 0) {
     cout << ", " << setw(w2) << gops / seconds * 1e-3 << " TOps/s";
   }
+}
+
+void print_power(double gops, measurement& m) {
+  if (m.power > 1) {
+    cout << ", " << setw(w2) << m.power << " W";
+  }
+}
+
+void print_efficiency(double gops, measurement& m) {
+  const double seconds = m.runtime * 1e-3;
+  const double power = m.power;
+  if (gops != 0 && power > 1) {
+    cout << ", " << setw(w2) << gops / seconds / power << " GOps/W";
+  }
+}
+
+void print_bandwidth(double gbytes, measurement& m) {
+  const double seconds = m.runtime * 1e-3;
+  if (gbytes != 0) {
+    cout << ", " << setw(w2) << gbytes / seconds << " GB/s";
+  }
+}
+
+void print_oi(double gops, double gbytes) {
+  if (gops != 0 && gbytes != 0) {
+    float operational_intensity = gops / gbytes;
+    cout << ", " << setw(w2) << operational_intensity << " Op/byte";
+  }
+}
+
+void report(string name, double gops, double gbytes, measurement& m) {
+  const double milliseconds = m.runtime;
+  const double seconds = milliseconds * 1e-3;
+  cout << setw(w1) << string(name) << ": ";
+  cout << setprecision(2) << fixed;
+  cout << setw(w2) << milliseconds << " ms";
+  print_ops(gops, m);
+  print_power(gops, m);
+  print_efficiency(gops, m);
+  print_bandwidth(gbytes, m);
+  print_oi(gops, gbytes);
   cout << endl;
 }
 
@@ -154,9 +171,9 @@ void Benchmark::allocate(size_t bytes) {
 }
 
 void Benchmark::run(void* kernel, dim3 grid, dim3 block, const char* name,
-                    double gflops, double gbytes, double gops) {
+                    double gops, double gbytes) {
   measurement measurement = run_kernel(kernel, grid, block);
-  report(name, measurement, gflops, gbytes, gops);
+  report(name, gops, gbytes, measurement);
 }
 
 measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {

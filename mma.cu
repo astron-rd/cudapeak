@@ -27,32 +27,32 @@ int main(int argc, const char* argv[]) {
 
   // Amount of work performed
   int nr_iterations = 32768;
-  double gflops =
+  const double gops =
       1e-9 * nr_iterations * nr_warps_per_thread_block * nr_thread_blocks;
-  double gbytes = 0;
+  const double gbytes = 0;
 
   benchmark.allocate(sizeof_data);
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&bmma_b1_16_8_256_xor), grid, block,
-                  "bmma_b1_16_8_256_xor", gflops * (16 * 8 * 256 * 2), gbytes);
+                  "bmma_b1_16_8_256_xor", gops * (16 * 8 * 256 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&bmma_b1_16_8_256_and), grid, block,
-                  "bmma_b1_16_8_256_and", gflops * (16 * 8 * 256 * 2), gbytes);
+                  "bmma_b1_16_8_256_and", gops * (16 * 8 * 256 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&bmma_b1_8_8_128_xor), grid, block,
-                  "bmma_b1_8_8_128_xor", gflops * (8 * 8 * 128 * 2), gbytes);
+                  "bmma_b1_8_8_128_xor", gops * (8 * 8 * 128 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&bmma_b1_8_8_128_and), grid, block,
-                  "bmma_b1_8_8_128_and", gflops * (8 * 8 * 128 * 2), gbytes);
+                  "bmma_b1_8_8_128_and", gops * (8 * 8 * 128 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_s4_8_8_32), grid, block,
-                  "mma_s4_8_8_32", gflops * (8 * 8 * 32 * 2), gbytes);
+                  "mma_s4_8_8_32", gops * (8 * 8 * 32 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_s8_16_16_16), grid, block,
-                  "mma_s8_16_16_16", gflops * (16 * 16 * 16 * 2), gbytes);
+                  "mma_s8_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_f16_16_16_16), grid, block,
-                  "mma_f16_16_16_16", gflops * (16 * 16 * 16 * 2), gbytes);
+                  "mma_f16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_bf16_16_16_16), grid, block,
-                  "mma_bf16_16_16_16", gflops * (16 * 16 * 16 * 2), gbytes);
+                  "mma_bf16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_tf32_16_16_8), grid, block,
-                  "mma_tf32_16_16_8", gflops * (16 * 16 * 8 * 2), gbytes);
+                  "mma_tf32_16_16_8", gops * (16 * 16 * 8 * 2), gbytes);
   }
 
   return EXIT_SUCCESS;

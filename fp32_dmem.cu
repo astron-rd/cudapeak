@@ -20,8 +20,9 @@ int main(int argc, const char* argv[]) {
   unsigned fetchPerBlock = 16;
   int maxItems = benchmark.totalGlobalMem() / sizeof(float4) / 2;
   int numItems = roundToPowOf2(maxItems);
-  double gbytes = (float)(numItems / fetchPerBlock * 2) * sizeof(float4) / 1e9;
-  double gflops = gbytes * 4;
+  const double gbytes =
+      (float)(numItems / fetchPerBlock * 2) * sizeof(float4) / 1e9;
+  const double gops = gbytes * 4;
 
   // Kernel dimensions
   dim3 grid(numItems / (fetchPerBlock * maxThreadsPerBlock));
@@ -33,23 +34,23 @@ int main(int argc, const char* argv[]) {
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_01), grid, block,
-                  "flop:byte ->   1:1", 1 * gflops, gbytes);
+                  "flop:byte ->   1:1", 1 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_02), grid, block,
-                  "flop:byte ->   2:1", 2 * gflops, gbytes);
+                  "flop:byte ->   2:1", 2 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_04), grid, block,
-                  "flop:byte ->   4:1", 4 * gflops, gbytes);
+                  "flop:byte ->   4:1", 4 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_08), grid, block,
-                  "flop:byte ->   8:1", 8 * gflops, gbytes);
+                  "flop:byte ->   8:1", 8 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_16), grid, block,
-                  "flop:byte ->  16:1", 16 * gflops, gbytes);
+                  "flop:byte ->  16:1", 16 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_32), grid, block,
-                  "flop:byte ->  32:1", 32 * gflops, gbytes);
+                  "flop:byte ->  32:1", 32 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_64), grid, block,
-                  "flop:byte ->  64:1", 64 * gflops, gbytes);
+                  "flop:byte ->  64:1", 64 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_128), grid, block,
-                  "flop:byte -> 128:1", 128 * gflops, gbytes);
+                  "flop:byte -> 128:1", 128 * gops, gbytes);
     benchmark.run(reinterpret_cast<void*>(&fp32_dmem_256), grid, block,
-                  "flop:byte -> 256:1", 256 * gflops, gbytes);
+                  "flop:byte -> 256:1", 256 * gops, gbytes);
   }
 
   return EXIT_SUCCESS;
