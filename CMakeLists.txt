@@ -18,6 +18,13 @@ FetchContent_Declare(
   GIT_TAG v3.2.0)
 FetchContent_MakeAvailable(cxxopts)
 
+include(FetchContent)
+FetchContent_Declare(
+  cudawrappers
+  GIT_REPOSITORY https://github.com/nlesc-recruit/cudawrappers
+  GIT_TAG main)
+FetchContent_MakeAvailable(cudawrappers)
+
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 option(BUILD_KERNEL_DEBUG "Build CUDA kernels in debug mode")
 
@@ -32,8 +39,8 @@ endif()
 file(GLOB CUDA_SOURCES *.cu)
 list(REMOVE_ITEM CUDA_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/common.cu)
 
-add_library(common OBJECT common.cu)
-target_link_libraries(common cxxopts)
+add_library(common OBJECT common.cpp common.cu)
+target_link_libraries(common cxxopts cudawrappers::cu)
 if(BUILD_WITH_PMT)
   target_link_libraries(common pmt)
 endif()
