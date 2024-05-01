@@ -1,7 +1,7 @@
 #include <iomanip>
 #include <iostream>
 
-#include <cuda_runtime.h>
+#include <cudawrappers/cu.hpp>
 
 #ifndef COMMON_H
 #define COMMON_H
@@ -26,15 +26,15 @@ void report(string name, measurement measurement, double gflops = 0,
 class Benchmark {
  public:
   Benchmark(int argc, const char* argv[]);
-  ~Benchmark();
 
   void allocate(size_t bytes);
   void run(void* kernel, dim3 grid, dim3 block, const char* name,
            double gops = 0, double gbytes = 0);
 
-  int multiProcessorCount() { return device_properties_.multiProcessorCount; }
-  int maxThreadsPerBlock() { return device_properties_.maxThreadsPerBlock; }
-  size_t totalGlobalMem() { return device_properties_.totalGlobalMem; }
+  int multiProcessorCount();
+  int clockRate();
+  int maxThreadsPerBlock();
+  size_t totalGlobalMem();
 
   unsigned nrBenchmarks() { return nr_benchmarks_; }
   unsigned nrIterations() { return nr_iterations_; }
@@ -48,12 +48,10 @@ class Benchmark {
 
   unsigned nr_benchmarks_;
   unsigned nr_iterations_;
-  cudaStream_t stream_;
-  cudaDeviceProp device_properties_;
-  cudaEvent_t event_start_;
-  cudaEvent_t event_end_;
-  void* data_ = nullptr;
-  size_t data_bytes_;
+  std::unique_ptr<cu::Device> device_;
+  std::unique_ptr<cu::Context> context_;
+  std::unique_ptr<cu::Stream> stream_;
+  std::unique_ptr<cu::DeviceMemory> d_data_;
 #if defined(HAVE_PMT)
   std::shared_ptr<pmt::PMT> pm_;
   bool measure_power_;
