@@ -65,7 +65,7 @@ unsigned roundToPowOf2(unsigned number) {
 }
 
 cxxopts::Options setupCommandLineParser(const char* argv[]) {
-  cxxopts::Options options(argv[0], "Benchmark for BeamFormerKernel");
+  cxxopts::Options options(argv[0]);
 
   const unsigned NR_BENCHMARKS = 1;
   const unsigned NR_ITERATIONS = 1;
