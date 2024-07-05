@@ -238,16 +238,20 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
 #endif
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
+#if defined(HAVE_PMT)
     if (measure_power_) {
       pmt::State state_end = pm_->Read();
       measurement.power = pmt::PMT::watts(state_start, state_end);
     }
+#endif
+#if defined(HAVE_FMT)
     if (measure_frequency_) {
       auto names = nvidia.names();
       auto frequency = nvidia.get();
       assert(names[1].compare("sm") == 0);
       measurement.frequency = frequency[1];
     }
+#endif
     if (thread.joinable()) {
       thread.join();
     }
