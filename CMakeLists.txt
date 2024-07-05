@@ -56,7 +56,7 @@ if(BUILD_WITH_PMT)
   target_link_libraries(common pmt)
 endif()
 if(BUILD_WITH_FMT)
-  target_link_libraries(common fmt cudawrappers::nvml)
+  target_link_libraries(common fmt)
 endif()
 
 foreach(source_file ${CUDA_SOURCES})
