@@ -38,7 +38,7 @@ if(BUILD_WITH_PMT)
 endif()
 
 if(BUILD_WITH_FMT)
-  set(FMT_BUILD_NVIDIA 1)
+  set(FMT_BUILD_NVIDIA ON)
   FetchContent_Declare(
     fmt
     GIT_REPOSITORY https://git.astron.nl/RD/fmt
