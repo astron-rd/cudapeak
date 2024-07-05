@@ -1,3 +1,4 @@
+#include <cassert>
 #include <cmath>
 #include <thread>
 
@@ -43,6 +44,13 @@ void print_oi(double gops, double gbytes) {
   }
 }
 
+void print_frequency(measurement& m) {
+  const unsigned int frequency = m.frequency;
+  if (frequency != 0) {
+    cout << ", " << setw(w2) << frequency << " MHz";
+  }
+}
+
 void report(string name, double gops, double gbytes, measurement& m) {
   const double milliseconds = m.runtime;
   const double seconds = milliseconds * 1e-3;
@@ -54,6 +62,7 @@ void report(string name, double gops, double gbytes, measurement& m) {
   print_efficiency(gops, m);
   print_bandwidth(gbytes, m);
   print_oi(gops, gbytes);
+  print_frequency(m);
   cout << endl;
 }
 
@@ -71,6 +80,11 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
   const unsigned NR_ITERATIONS = 1;
 #if defined(HAVE_PMT)
   const unsigned MEASURE_POWER = false;
+#endif
+#if defined(HAVE_FMT)
+  const unsigned MEASURE_FREQUENCY = false;
+#endif
+#if defined(HAVE_PMT) || defined(HAVE_FMT)
   const unsigned BENCHMARK_DURATION = 4000;  // ms
 #endif
   const unsigned DEVICE_ID = 0;
@@ -83,6 +97,12 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
 #if defined(HAVE_PMT)
       "measure_power", "Measure power",
       cxxopts::value<bool>()->default_value(std::to_string(MEASURE_POWER)))(
+#endif
+#if defined(HAVE_FMT)
+      "measure_frequency", "Measure frequency",
+      cxxopts::value<bool>()->default_value(std::to_string(MEASURE_FREQUENCY)))(
+#endif
+#if defined(HAVE_PMT) || defined(HAVE_FMT)
       "benchmark_duration", "Approximate number of ms to run the benchmark",
       cxxopts::value<unsigned>()->default_value(
           std::to_string(BENCHMARK_DURATION)))(
@@ -120,9 +140,14 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
   const unsigned device_number = results["device_id"].as<unsigned>();
   nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
   nr_iterations_ = results["nr_iterations"].as<unsigned>();
+#if defined(HAVE_PMT) || defined(HAVE_FMT)
+  benchmark_duration_ = results["benchmark_duration"].as<unsigned>();
+#endif
 #if defined(HAVE_PMT)
   measure_power_ = results["measure_power"].as<bool>();
-  benchmark_duration_ = results["benchmark_duration"].as<unsigned>();
+#endif
+#if defined(HAVE_FMT)
+  measure_frequency_ = results["measure_frequency"].as<bool>();
 #endif
 
   // Setup CUDA
@@ -173,58 +198,69 @@ size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }
 void launch_kernel(void* kernel, cu::Stream& stream, dim3 grid, dim3 block,
                    void* data);
 
+float run_kernel(void* kernel, cu::Stream& stream, dim3 grid, dim3 block,
+                 void* data, int n = 1) {
+  cu::Event start;
+  cu::Event end;
+  stream.record(start);
+  for (int i = 0; i < n; i++) {
+    launch_kernel(kernel, stream, grid, block, data);
+  }
+  stream.record(end);
+  end.synchronize();
+  return end.elapsedTime(start);
+}
+
 measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
-  cu::Event event_start;
-  cu::Event event_end;
   void* data = reinterpret_cast<void*>(static_cast<CUdeviceptr>(*d_data_));
 
 // Benchmark with power measurement
-#if defined(HAVE_PMT)
-  if (measurePower()) {
+#if defined(HAVE_PMT) || defined(HAVE_FMT)
+  if (measureContinuous()) {
+    measurement measurement;
     float milliseconds = 0;
     unsigned nr_iterations = 0;
 
     std::thread thread([&] {
-      stream_->record(event_start);
-      launch_kernel(kernel, *stream_, grid, block, data);
-      stream_->record(event_end);
-      event_end.synchronize();
-      milliseconds = event_end.elapsedTime(event_start);
+      context_->setCurrent();
+      milliseconds = ::run_kernel(kernel, *stream_, grid, block, data);
       nr_iterations = benchmarkDuration() / milliseconds;
-      stream_->record(event_start);
-      for (int i = 0; i < nr_iterations; i++) {
-        launch_kernel(kernel, *stream_, grid, block, data);
-      }
-      stream_->record(event_end);
-      event_end.synchronize();
-      milliseconds = event_end.elapsedTime(event_start);
+      milliseconds =
+          ::run_kernel(kernel, *stream_, grid, block, data, nr_iterations);
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
+#if defined(HAVE_PMT)
     pmt::State state_start = pm_->Read();
+#endif
+#if defined(HAVE_FMT)
+    fmt::nvidia::NVIDIA nvidia(*device_);
+#endif
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
-    pmt::State state_end = pm_->Read();
+    if (measure_power_) {
+      pmt::State state_end = pm_->Read();
+      measurement.power = pmt::PMT::watts(state_start, state_end);
+    }
+    if (measure_frequency_) {
+      auto names = nvidia.names();
+      auto frequency = nvidia.get();
+      assert(names[1].compare("sm") == 0);
+      measurement.frequency = frequency[1];
+    }
     if (thread.joinable()) {
       thread.join();
     }
 
-    measurement measurement;
     measurement.runtime = milliseconds / nr_iterations;
-    measurement.power = pmt::PMT::watts(state_start, state_end);
 
     return measurement;
   }
 #endif
 
   // Benchmark (timing only)
-  stream_->record(event_start);
-  for (int i = 0; i < nrIterations(); i++) {
-    launch_kernel(kernel, *stream_, grid, block, data);
-  }
-  stream_->record(event_end);
-  event_end.synchronize();
-  const float milliseconds = event_end.elapsedTime(event_start);
+  const float milliseconds =
+      ::run_kernel(kernel, *stream_, grid, block, data, nrIterations());
   measurement measurement;
   measurement.runtime = milliseconds / nrIterations();
   measurement.power = 0;
