@@ -75,7 +75,7 @@ class Benchmark {
 #if defined(HAVE_FMT)
   bool measure_frequency_;
 #endif
-#if defined(HAVE_FMT) || defined(HAVE_FMT)
+#if defined(HAVE_PMT) || defined(HAVE_FMT)
   unsigned benchmark_duration_;
 #endif
 };
