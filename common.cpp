@@ -159,13 +159,66 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
 
   // Print CUDA device information
   std::cout << "Device " << device_number << ": " << device_->getName();
-  std::cout << " (" << multiProcessorCount() << "SMs, ";
+  std::cout << " (" << multiProcessorCount();
+#if defined(__HIP_PLATFORM_AMD__)
+  if (isCDNA()) {
+    std::cout << "CUs, ";
+  } else if (isRDNA3()) {
+    std::cout << "WGPs, ";
+  } else {
+    std::cout << "units, ";
+  }
+#else
+  std::cout << "SMs, ";
+#endif
   std::cout << clockRate() * 1e-6 << " Ghz)" << std::endl;
 
 #if defined(HAVE_PMT)
+#if defined(__HIP_PLATFORM_AMD__)
+  pm_ = std::move(pmt::Create("rocm"));
+#else
   pm_ = std::move(pmt::Create("nvidia"));
 #endif
+#endif
+
+#if defined(HAVE_FMT)
+#if defined(__HIP_PLATFORM_AMD__)
+  fm_ = std::make_unique<fmt::amd::AMD>(device_number);
+#else
+  fm_ = std::make_unique<fmt::nvidia::NVIDIA>(*device_);
+#endif
+#endif
 }
+
+#if defined(__HIP_PLATFORM_AMD__)
+// architecture checking code based on
+// https://github.com/ROCm/rocWMMA/blob/develop/samples/common.hpp
+bool Benchmark::isCDNA1() {
+  const std::string arch(device_->getArch());
+  return (arch.find("gfx908") != std::string::npos);
+}
+
+bool Benchmark::isCDNA2() {
+  const std::string arch(device_->getArch());
+  return (arch.find("gfx90a") != std::string::npos);
+}
+
+bool Benchmark::isCDNA3() {
+  const std::string arch(device_->getArch());
+  return ((arch.find("gfx940") != std::string::npos) ||
+          (arch.find("gfx941") != std::string::npos) ||
+          (arch.find("gfx942") != std::string::npos));
+}
+
+bool Benchmark::isCDNA() { return (isCDNA1() || isCDNA2() || isCDNA3()); }
+
+bool Benchmark::isRDNA3() {
+  const std::string arch(device_->getArch());
+  return ((arch.find("gfx1100") != std::string::npos) ||
+          (arch.find("gfx1101") != std::string::npos) ||
+          (arch.find("gfx1102") != std::string::npos));
+}
+#endif
 
 void Benchmark::allocate(size_t bytes) {
   cu::HostMemory h_data(bytes);
@@ -211,6 +264,40 @@ float run_kernel(void* kernel, cu::Stream& stream, dim3 grid, dim3 block,
   return end.elapsedTime(start);
 }
 
+double Benchmark::measure_power() {
+#if defined(HAVE_PMT)
+  pmt::State state_start;
+
+  if (measure_power_) {
+    state_start = pm_->Read();
+  }
+  std::this_thread::sleep_for(
+      std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
+  if (measure_power_) {
+    pmt::State state_end = pm_->Read();
+    return pmt::PMT::watts(state_start, state_end);
+  }
+#endif
+  return 0;
+}
+
+double Benchmark::measure_frequency() {
+#if defined(HAVE_FMT)
+  if (measure_frequency_) {
+    auto names = fm_->names();
+    auto frequency = fm_->get();
+#if defined(__HIP_PLATFORM_AMD__)
+    assert(names[0].compare("sclk") == 0);
+    return frequency[0];
+#else
+    assert(names[1].compare("sm") == 0);
+    return frequency[1];
+#endif
+  }
+#endif
+  return 0;
+}
+
 measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
   void* data = reinterpret_cast<void*>(static_cast<CUdeviceptr>(*d_data_));
 
@@ -220,6 +307,7 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
     measurement measurement;
     float milliseconds = 0;
     unsigned nr_iterations = 0;
+    measurement.frequency = 0;
 
     std::thread thread([&] {
       context_->setCurrent();
@@ -230,28 +318,12 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
-#if defined(HAVE_PMT)
-    pmt::State state_start = pm_->Read();
-#endif
-#if defined(HAVE_FMT)
-    fmt::nvidia::NVIDIA nvidia(*device_);
-#endif
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
-#if defined(HAVE_PMT)
     if (measure_power_) {
-      pmt::State state_end = pm_->Read();
-      measurement.power = pmt::PMT::watts(state_start, state_end);
+      measurement.power = measure_power();
     }
-#endif
-#if defined(HAVE_FMT)
     if (measure_frequency_) {
-      auto names = nvidia.names();
-      auto frequency = nvidia.get();
-      assert(names[1].compare("sm") == 0);
-      measurement.frequency = frequency[1];
+      measurement.frequency = measure_frequency();
     }
-#endif
     if (thread.joinable()) {
       thread.join();
     }
@@ -268,5 +340,6 @@ measurement Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block) {
   measurement measurement;
   measurement.runtime = milliseconds / nrIterations();
   measurement.power = 0;
+  measurement.frequency = 0;
   return measurement;
 }

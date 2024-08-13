@@ -1,6 +1,12 @@
 #include <iomanip>
 #include <iostream>
 
+#if defined(__HIP__)
+#include <hip/hip_runtime.h>
+#else
+#include <cuda_runtime.h>
+#endif
+
 #include <cudawrappers/cu.hpp>
 
 #ifndef COMMON_H
@@ -19,9 +25,9 @@ using namespace std;
 unsigned roundToPowOf2(unsigned number);
 
 typedef struct {
-  double runtime;     // milliseconds
-  double power = 0;   // watts
-  int frequency = 0;  // MHz
+  double runtime;  // milliseconds
+  double power;    // watts
+  int frequency;   // MHz
 } measurement;
 
 // Function to report kernel performance
@@ -31,6 +37,14 @@ void report(string name, measurement measurement, double gflops = 0,
 class Benchmark {
  public:
   Benchmark(int argc, const char* argv[]);
+
+#if defined(__HIP_PLATFORM_AMD__)
+  bool isCDNA();
+  bool isCDNA1();
+  bool isCDNA2();
+  bool isCDNA3();
+  bool isRDNA3();
+#endif
 
   void allocate(size_t bytes);
   void run(void* kernel, dim3 grid, dim3 block, const char* name,
@@ -60,6 +74,8 @@ class Benchmark {
 #endif
 
  protected:
+  double measure_power();
+  double measure_frequency();
   measurement run_kernel(void* kernel, dim3 grid, dim3 block);
 
   unsigned nr_benchmarks_;
@@ -68,12 +84,13 @@ class Benchmark {
   std::unique_ptr<cu::Context> context_;
   std::unique_ptr<cu::Stream> stream_;
   std::unique_ptr<cu::DeviceMemory> d_data_;
+  bool measure_power_ = false;
+  bool measure_frequency_ = false;
 #if defined(HAVE_PMT)
   std::shared_ptr<pmt::PMT> pm_;
-  bool measure_power_;
 #endif
 #if defined(HAVE_FMT)
-  bool measure_frequency_;
+  std::shared_ptr<fmt::FMT> fm_;
 #endif
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
   unsigned benchmark_duration_;
