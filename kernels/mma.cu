@@ -87,6 +87,7 @@ __global__ void mma_f64_16_16_16(void* data) {
   fill_fragment(bFrag, 0);                           \
   for (unsigned k = 0; k < REPEAT_COUNT; k++) {
 #define END                               \
+  __syncwarp();                           \
   }                                       \
   Tout* ptr = &data[threadIdx.y * M * N]; \
   store_matrix_sync(ptr, sum, N, mem_row_major);
