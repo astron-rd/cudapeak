@@ -50,7 +50,7 @@ endif()
 
 if(BUILD_WITH_FMT)
   if(BUILD_WITH_HIP)
-    set(FMT_BUILD_AMD ON)
+    set(FMT_BUILD_AMDSMI ON)
   else()
     set(FMT_BUILD_NVIDIA ON)
   endif()

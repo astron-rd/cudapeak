@@ -183,7 +183,7 @@ Benchmark::Benchmark(int argc, const char* argv[]) {
 
 #if defined(HAVE_FMT)
 #if defined(__HIP_PLATFORM_AMD__)
-  fm_ = std::make_unique<fmt::amd::AMD>(device_number);
+  fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(device_number);
 #else
   fm_ = std::make_unique<fmt::nvidia::NVIDIA>(*device_);
 #endif
