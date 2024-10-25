@@ -66,7 +66,7 @@ file(GLOB CUDA_SOURCES *.cu)
 list(REMOVE_ITEM CUDA_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/Benchmark.cu)
 
 if(BUILD_WITH_HIP)
-  set(CUDA_SOURCES dmem.cu fp16.cu fp32.cu mma.cu)
+  set(CUDA_SOURCES dmem.cu fp16.cu fp32.cu mma.cu stream.cu)
 endif()
 
 add_library(common OBJECT Benchmark.cu common.cpp Measurement.cpp)
