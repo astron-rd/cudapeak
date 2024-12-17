@@ -76,6 +76,11 @@ __global__ void mma_f64_16_16_16(void* data) {
   mma_kernel<double, double, double, 16, 16, 16>((double*)data);
 }
 
+__global__ void mma_xf32_16_16_8(void* data) {
+  mma_kernel<rocwmma::xfloat32_t, rocwmma::xfloat32_t, float, 16, 16, 8>(
+      (float*)data);
+}
+
 #else
 
 #define START                                        \
