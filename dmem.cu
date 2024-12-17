@@ -10,10 +10,11 @@ int main(int argc, const char* argv[]) {
 
   // Amount of work performed
   unsigned fetchPerBlock = 16;
-  int maxItems = benchmark.totalGlobalMem() / sizeof(float) / 2;
-  int numItems = roundToPowOf2(maxItems);
+  const size_t maxItems = benchmark.totalGlobalMem() / sizeof(float) / 2;
+  const size_t numItems = roundToPowOf2(maxItems);
   const double gops = 0;
-  const double gbytes = (float)(numItems / fetchPerBlock) * sizeof(float) / 1e9;
+  const double gbytes =
+      (double)(numItems / fetchPerBlock) * sizeof(float) / 1e9;
 
   // Kernel dimensions
   dim3 grid(numItems / (fetchPerBlock * maxThreadsPerBlock));
