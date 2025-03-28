@@ -31,9 +31,11 @@ int main(int argc, const char* argv[]) {
   int nr_warps_per_thread_block = 4;
   dim3 grid(nr_thread_blocks);
   unsigned warp_size = 32;
+#if defined(__HIP_PLATFORM_AMD__)
   if (benchmark.isCDNA()) {
     warp_size = 64;
   }
+#endif
   dim3 block(warp_size, nr_warps_per_thread_block);
 
   size_t sizeof_data = nr_warps_per_thread_block * 16 * 16 * sizeof(int);
