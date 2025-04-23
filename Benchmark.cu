@@ -171,6 +171,26 @@ bool Benchmark::isRDNA3() {
           (arch.find("gfx1101") != std::string::npos) ||
           (arch.find("gfx1102") != std::string::npos));
 }
+#else
+bool Benchmark::isAda() {
+  const std::string arch(device_->getArch());
+  return (arch.find("sm_89") != std::string::npos);
+}
+
+bool Benchmark::isHopper() {
+  const std::string arch(device_->getArch());
+  // This also matches sm_90a
+  return (arch.find("sm_90") != std::string::npos);
+}
+
+bool Benchmark::isBlackwell() {
+  const std::string arch(device_->getArch());
+  // This also matches sm_100a, sm_101a, and sm_120a
+  return ((arch.find("sm_100") != std::string::npos) ||
+          (arch.find("sm_101") != std::string::npos) ||
+          (arch.find("sm_120") != std::string::npos));
+}
+
 #endif
 
 void Benchmark::allocate(size_t bytes) {
@@ -197,6 +217,7 @@ int Benchmark::clockRate() {
 
 int Benchmark::maxThreadsPerBlock() {
   return device_->getAttribute(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK);
+  device_->getAttribute(CU_DEVICE_ATTRIBUTE_MAX_THREADS_PER_BLOCK);
 }
 
 size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }

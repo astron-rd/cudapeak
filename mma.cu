@@ -9,6 +9,8 @@ __global__ void bmma_b1_8_8_128_and(void* ptr);
 __global__ void bmma_b1_16_8_256_and(void* ptr);
 __global__ void mma_s4_8_8_32(void* ptr);
 __global__ void mma_s8_16_16_16(void* ptr);
+__global__ void mma_e4m3_16_8_32(void* ptr);
+__global__ void mma_e5m2_16_8_32(void* ptr);
 __global__ void mma_tf32_16_16_8(void* ptr);
 #else
 __global__ void mma_fp8_16_16_32(void* ptr);
@@ -76,6 +78,12 @@ int main(int argc, const char* argv[]) {
                   "mma_s4_8_8_32", gops * (8 * 8 * 32 * 2), gbytes);
     benchmark.run(reinterpret_cast<void*>(&mma_s8_16_16_16), grid, block,
                   "mma_s8_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
+    if (benchmark.isAda() || benchmark.isHopper() || benchmark.isBlackwell()) {
+      benchmark.run(reinterpret_cast<void*>(&mma_e4m3_16_8_32), grid, block,
+                    "mma_e4m3_16_8_32", gops * (16 * 8 * 32 * 2), gbytes);
+      benchmark.run(reinterpret_cast<void*>(&mma_e5m2_16_8_32), grid, block,
+                    "mma_e5m2_16_8_32", gops * (16 * 8 * 32 * 2), gbytes);
+    }
 #endif
     benchmark.run(reinterpret_cast<void*>(&mma_f16_16_16_16), grid, block,
                   "mma_f16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);

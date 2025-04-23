@@ -32,6 +32,10 @@ class Benchmark {
   bool isCDNA2();
   bool isCDNA3();
   bool isRDNA3();
+#else
+  bool isAda();
+  bool isHopper();
+  bool isBlackwell();
 #endif
 
   void allocate(size_t bytes);

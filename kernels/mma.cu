@@ -8,6 +8,7 @@ using namespace rocwmma;
 #else
 #include <cuda.h>
 #include <mma.h>
+#include <cuda_fp8.h>
 
 using namespace nvcuda::wmma;
 #endif
@@ -107,6 +108,11 @@ __device__ void mma_kernel(Tout* data) {
 #include "mma_m8n8k32_s32s4s4s32.cuh"
 #include "mma_m16n8k256_s32b1b1s32.cuh"
 
+#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 120
+#define ENABLE_FP8
+#include "mma_m16n8k32_f32f8f8f32.cuh"
+#endif
+
 template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K>
 __device__ void mma_kernel_ptx(Tout* data) {
   START
@@ -161,4 +167,17 @@ __global__ void mma_bf16_16_16_16(void* data) {
 __global__ void mma_tf32_16_16_8(void* data) {
   mma_kernel<precision::tf32, float, 16, 16, 8>((float*)data);
 }
+
+__global__ void mma_e4m3_16_8_32(void* data) {
+#if defined(ENABLE_FP8)
+  mma_kernel_ptx<__nv_fp8_e4m3, float, 16, 8, 32>((float*)data);
+#endif
+}
+
+__global__ void mma_e5m2_16_8_32(void* data) {
+#if defined(ENABLE_FP8)
+  mma_kernel_ptx<__nv_fp8_e5m2, float, 16, 8, 32>((float*)data);
+#endif
+}
+
 #endif
