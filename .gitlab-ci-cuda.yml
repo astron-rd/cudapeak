@@ -1,0 +1,33 @@
+---
+.build_cuda_template: &build_cuda_template
+  image: $CUDA_IMAGE
+  before_script:
+    - apt update -y && apt install -y cmake git
+  script:
+    - cmake -S . -B build -DCMAKE_CUDA_ARCHITECTURES=$CUDA_ARCH
+    - make -C build -j
+
+build-cuda:
+  stage: build
+  extends:
+    - .build_cuda_template
+  needs:
+    - format
+  parallel:
+    matrix:
+      - CUDA_IMAGE: nvidia/cuda:12.8.1-devel-ubuntu24.04
+        CUDA_ARCH: [80, 86, 89, 90, 120]
+
+  when: always
+
+build-cuda-optional:
+  stage: build-optional
+  extends:
+    - .build_cuda_template
+  needs:
+    - build-cuda
+  parallel:
+    matrix:
+      - CUDA_IMAGE: nvidia/cuda:12.6.3-devel-ubuntu22.04
+        CUDA_ARCH: [80, 86, 89, 90,]
+  when: manual

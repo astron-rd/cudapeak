@@ -1,0 +1,33 @@
+---
+.build_rocm_template: &build_rocm_template
+  image: $ROCM_IMAGE
+  before_script:
+    - apt update -qq
+    - apt install -y cmake git hipfft-dev rocwmma-dev
+  script:
+    - cmake -S . -B build -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=$ROCM_ARCH
+    - make -C build -j
+
+build-rocm:
+  stage: build
+  extends:
+    - .build_rocm_template
+  needs:
+    - format
+  parallel:
+    matrix:
+      - ROCM_IMAGE: rocm/dev-ubuntu-24.04:6.4
+        ROCM_ARCH: [gfx1101, gfx90a, gfx940]
+  when: always
+
+build-rocm-optional:
+  stage: build-optional
+  extends:
+    - .build_rocm_template
+  needs:
+    - build-rocm
+  parallel:
+    matrix:
+      - ROCM_IMAGE: [rocm/dev-ubuntu-22.04:6.1.2, rocm/dev-ubuntu-24.04:6.2.4, rocm/dev-ubuntu-24.04:6.3.4]
+        ROCM_ARCH: [gfx1101, gfx90a, gfx940]
+  when: manual
