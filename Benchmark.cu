@@ -165,6 +165,13 @@ bool Benchmark::isCDNA3() {
 
 bool Benchmark::isCDNA() { return (isCDNA1() || isCDNA2() || isCDNA3()); }
 
+bool Benchmark::isRDNA2() {
+  const std::string arch(device_->getArch());
+  return ((arch.find("gfx1030") != std::string::npos) ||
+          (arch.find("gfx1031") != std::string::npos) ||
+          (arch.find("gfx1032") != std::string::npos));
+}
+
 bool Benchmark::isRDNA3() {
   const std::string arch(device_->getArch());
   return ((arch.find("gfx1100") != std::string::npos) ||

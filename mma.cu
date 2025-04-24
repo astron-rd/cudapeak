@@ -1,3 +1,5 @@
+#include <iostream>
+
 #include "common.h"
 
 __global__ void mma_f16_16_16_16(void* ptr);
@@ -23,6 +25,13 @@ __global__ void mma_xf32_16_16_8(void* ptr);
 
 int main(int argc, const char* argv[]) {
   Benchmark benchmark(argc, argv);
+
+#if defined(__HIP_PLATFORM_AMD__)
+  if (benchmark.isRDNA2()) {
+    std::cout << "RDNA2 is not supported." << std::endl;
+    return EXIT_SUCCESS;
+  }
+#endif
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();

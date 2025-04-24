@@ -1,10 +1,16 @@
 #if defined(__HIP_PLATFORM_AMD__)
 #include <hip/hip_runtime.h>
+
+// rocWMMA does not support RDNA2
+#if not defined(__gfx1030__) && not defined(__gfx1031__) && \
+    not defined(__gfx1032__)
 #include <rocwmma/rocwmma.hpp>
+#include <rocwmma/rocwmma-version.hpp>
+using namespace rocwmma;
+#endif
 
 #include "precision.h"
 
-using namespace rocwmma;
 #else
 #include <cuda.h>
 #include <mma.h>
@@ -17,6 +23,7 @@ using namespace nvcuda::wmma;
 
 #if defined(__HIP_PLATFORM_AMD__)
 
+#if defined(ROCWMMA_VERSION_MAJOR)
 #define START                                         \
   fragment<accumulator, M, N, K, Tout> sum;           \
   fragment<matrix_a, M, N, K, Tmma, row_major> aFrag; \
@@ -40,46 +47,65 @@ __device__ void mma_kernel(Tout* data) {
 
 #include "mma_m16n16k32_fp32fp8fp8fp32.hiph"
 #include "mma_m16n16k32_fp32bf8bf8fp32.hiph"
+#endif
 
 template <typename Tin, typename Tmma, typename Tout, unsigned M, unsigned N,
           unsigned K>
 __device__ void mma_kernel_llvm(Tout* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   START
   mma_sync_llvm(sum, aFrag, bFrag, sum);
   END
+#endif
 }
 
 __global__ void mma_fp8_16_16_32(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel_llvm<char, precision::fp8, float, 16, 16, 32>((float*)data);
+#endif
 }
 
 __global__ void mma_bf8_16_16_32(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel_llvm<char, precision::bf8, float, 16, 16, 32>((float*)data);
+#endif
 }
 
 __global__ void mma_s8_16_16_32(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<signed char, signed char, int, 16, 16, 32>((int*)data);
+#endif
 }
 
 __global__ void mma_f16_16_16_16(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<half, half, float, 16, 16, 16>((float*)data);
+#endif
 }
 
 __global__ void mma_bf16_16_16_16(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<hip_bfloat16, hip_bfloat16, float, 16, 16, 16>((float*)data);
+#endif
 }
 
 __global__ void mma_f32_16_16_16(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<float, float, float, 16, 16, 16>((float*)data);
+#endif
 }
 
 __global__ void mma_f64_16_16_16(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<double, double, double, 16, 16, 16>((double*)data);
+#endif
 }
 
 __global__ void mma_xf32_16_16_8(void* data) {
+#if defined(ROCWMMA_VERSION_MAJOR)
   mma_kernel<rocwmma::xfloat32_t, rocwmma::xfloat32_t, float, 16, 16, 8>(
       (float*)data);
+#endif
 }
 
 #else

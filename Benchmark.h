@@ -31,6 +31,7 @@ class Benchmark {
   bool isCDNA1();
   bool isCDNA2();
   bool isCDNA3();
+  bool isRDNA2();
   bool isRDNA3();
 #else
   bool isAda();

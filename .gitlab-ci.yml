@@ -1,5 +1,7 @@
+---
 stages:
   - linting
+  - build
 
 format:
   stage: linting
@@ -10,3 +12,52 @@ format:
     - apt install -y clang-format-14 cmake-format pre-commit
   script:
     - pre-commit run -a
+
+.build_cuda_template: &build_cuda_template
+  stage: build
+  before_script:
+    - apt update -y && apt install -y cmake git
+  script:
+    - for arch in $CUDA_ARCHITECTURES; do
+        cmake -S . -B build-$arch -DCMAKE_CUDA_ARCHITECTURES=$arch &&
+        make -C build-$arch -j;
+      done
+
+build_cuda_12_6_3:
+  <<: *build_cuda_template
+  image: nvidia/cuda:12.6.3-devel-ubuntu22.04
+  variables:
+    CUDA_ARCHITECTURES: "86 89 90"
+
+build_cuda_12_8_1:
+  <<: *build_cuda_template
+  image: nvidia/cuda:12.8.1-devel-ubuntu24.04
+  variables:
+    CUDA_ARCHITECTURES: "86 89 90 120"
+
+.build_rocm_template: &build_rocm_template
+  stage: build
+  before_script:
+    - apt update -qq
+    - apt install -y cmake git hipfft-dev rocwmma-dev
+  script:
+    - for arch in gfx1101 gfx90a gfx940; do
+        cmake -S . -B build-$arch -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=$arch &&
+        make -C build-$arch -j;
+      done
+
+build_rocm_6_1_2:
+  <<: *build_rocm_template
+  image: rocm/dev-ubuntu-22.04:6.1.2
+
+build_rocm_6_2_4:
+  <<: *build_rocm_template
+  image: rocm/dev-ubuntu-24.04:6.2.4
+
+build_rocm_6_3_4:
+  <<: *build_rocm_template
+  image: rocm/dev-ubuntu-24.04:6.3.4
+
+build_rocm_6_4:
+  <<: *build_rocm_template
+  image: rocm/dev-ubuntu-24.04:6.4
