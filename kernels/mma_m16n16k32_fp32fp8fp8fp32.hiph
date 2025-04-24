@@ -28,7 +28,7 @@ __device__ void fill_fragment(fragment<MatrixT, 16, 16, 32, precision::fp8, Data
 __device__ void load_matrix_sync(fragment<matrix_a, 16, 16, 32, precision::fp8, row_major>& frag, const char* ptr, unsigned ldm) {
     // A i: (lane % 16)
     // A k: 8 * floor(lane / 16) + 4 * GPR_num + floor(GPR_bits / 8)
-    const unsigned lane = threadIdx.x % __AMDGCN_WAVEFRONT_SIZE__;
+    const unsigned lane = threadIdx.x % warpSize;
     const unsigned i = lane % 16;
     const unsigned epr = 4;  // 4 elements per register (4 chars in one 32-bit register)
     for (size_t reg = 0; reg < frag.num_elements; reg++) {
@@ -46,7 +46,7 @@ __device__ void load_matrix_sync(fragment<matrix_a, 16, 16, 32, precision::fp8, 
 __device__ void load_matrix_sync(fragment<matrix_b, 16, 16, 32, precision::fp8, col_major>& frag, const char* ptr, unsigned ldm) {
     // B j: (lane % 16)
     // B k: 8 * floor(lane / 16) + 4 * GPR_num + floor(GPR_bits / 8)
-    const unsigned lane = threadIdx.x % __AMDGCN_WAVEFRONT_SIZE__;
+    const unsigned lane = threadIdx.x % warpSize;
     const unsigned j = lane % 16;
     const unsigned epr = 4;  // 4 elements per register (4 chars in one 32-bit register)s
     for (size_t reg = 0; reg < frag.num_elements; reg++) {

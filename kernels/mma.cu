@@ -9,7 +9,13 @@
 using namespace rocwmma;
 #endif
 
-#include "precision.h"
+#include <hip/hip_version.h>
+#if HIP_VERSION >= 60300000
+#include <hip/hip_fp8.h>
+#else
+struct hip_fp8_e4m3;
+struct hip_fp8_e5m2;
+#endif
 
 #else
 #include <cuda.h>
