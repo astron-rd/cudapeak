@@ -1,6 +1,6 @@
 #include <iostream>
 
-#include "common.h"
+#include "common/common.h"
 
 __global__ void mma_f16_16_16_16(void* ptr);
 __global__ void mma_bf16_16_16_16(void* ptr);

@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common/common.h"
 
 __global__ void dmem_kernel(float* ptr);
 

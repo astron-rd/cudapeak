@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common/common.h"
 #include "kernels/fp16.h"
 
 __global__ void fp16_kernel(half* ptr);

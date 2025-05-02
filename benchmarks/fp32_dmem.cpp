@@ -1,4 +1,4 @@
-#include "common.h"
+#include "common/common.h"
 
 __global__ void fp32_dmem_01(float4* ptr);
 __global__ void fp32_dmem_02(float4* ptr);

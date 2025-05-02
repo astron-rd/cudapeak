@@ -1,6 +1,6 @@
-#include "common.h"
+#include "common/common.h"
 
-__global__ void fp32_kernel(float* ptr);
+__global__ void int32_kernel(int* ptr);
 
 int main(int argc, const char* argv[]) {
   Benchmark benchmark(argc, argv);
@@ -19,11 +19,12 @@ int main(int argc, const char* argv[]) {
   dim3 grid(multiProcessorCount);
   dim3 block(maxThreadsPerBlock);
 
-  benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+  // Allocate memory
+  benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(int));
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void*>(&fp32_kernel), grid, block, "fp32",
+    benchmark.run(reinterpret_cast<void*>(&int32_kernel), grid, block, "int32",
                   gops, gbytes);
   }
 
