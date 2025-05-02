@@ -4,12 +4,6 @@
 #include <memory>
 #include <string>
 
-#if defined(__HIP__)
-#include <hip/hip_runtime.h>
-#else
-#include <cuda_runtime.h>
-#endif
-
 #include <cudawrappers/cu.hpp>
 
 #if defined(HAVE_PMT)
@@ -72,8 +66,11 @@ class Benchmark {
   double measure_frequency();
   float run_kernel(void* kernel, dim3 grid, dim3 block, int n = 1);
   Measurement measure_kernel(void* kernel, dim3 grid, dim3 block);
-  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block);
+  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block,
+                             cu::Stream& stream,
+                             const std::vector<const void*>& args);
 
+  std::vector<const void*> args_;
   unsigned nr_benchmarks_;
   unsigned nr_iterations_;
   std::unique_ptr<cu::Device> device_;

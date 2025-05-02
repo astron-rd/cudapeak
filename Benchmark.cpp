@@ -206,6 +206,8 @@ void Benchmark::allocate(size_t bytes) {
   std::memset(h_data, 1, bytes);
   stream_->memcpyHtoDAsync(*d_data_, h_data, bytes);
   stream_->synchronize();
+  args_.resize(1);
+  args_[0] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_data_));
 }
 
 void Benchmark::run(void* kernel, dim3 grid, dim3 block, const char* name,
@@ -229,17 +231,12 @@ int Benchmark::maxThreadsPerBlock() {
 
 size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }
 
-void Benchmark::launch_kernel(void* kernel, dim3 grid, dim3 block) {
-  void* data = reinterpret_cast<void*>(static_cast<CUdeviceptr>(*d_data_));
-  ((void (*)(void*))kernel)<<<grid, block, 0, *stream_>>>(data);
-}
-
 float Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block, int n) {
   cu::Event start;
   cu::Event end;
   stream_->record(start);
   for (int i = 0; i < n; i++) {
-    launch_kernel(kernel, grid, block);
+    launch_kernel(kernel, grid, block, *stream_, args_);
   }
   stream_->record(end);
   end.synchronize();

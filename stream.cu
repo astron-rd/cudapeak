@@ -34,6 +34,12 @@ class BenchmarkStream : public Benchmark {
     const size_t N = totalGlobalMem() / sizeof(T) / 4;
     N_ = roundToPowOf2(N);
     allocate(N_ * sizeof(T));
+    args_.resize(5);
+    args_[0] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_a_));
+    args_[1] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_b_));
+    args_[2] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_c_));
+    args_[3] = &scale_;
+    args_[4] = &N_;
   }
 
   void benchmark() {
@@ -81,14 +87,9 @@ class BenchmarkStream : public Benchmark {
   }
 
  private:
-  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block) override {
-    T* a = reinterpret_cast<T*>(static_cast<CUdeviceptr>(*d_a_));
-    T* b = reinterpret_cast<T*>(static_cast<CUdeviceptr>(*d_b_));
-    T* c = reinterpret_cast<T*>(static_cast<CUdeviceptr>(*d_c_));
-
-    ((void (*)(T*, T*, T*, T, int))kernel)<<<grid, block, 0, *stream_>>>(
-        a, b, c, scale_, N_);
-  }
+  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block,
+                             cu::Stream& stream,
+                             const std::vector<const void*>& args) override;
 
   void allocate(size_t bytes) {
     cu::HostMemory h_data(bytes);
