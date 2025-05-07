@@ -1,4 +1,5 @@
-#define NR_ITERATIONS 2048
+#define nr_outer 4096
+#define nr_inner 512
 
 template <int nr_fp32, int nr_int32>
 __device__ void fp32_int32_8_8(float2& a, float2& b, float2& c, int2& d,
@@ -51,8 +52,8 @@ __device__ void fp32_int32_8_8(float2& a, float2& b, float2& c, int2& d,
 __global__ void fp32_int32_1_64(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 64, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 64, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -61,8 +62,8 @@ __global__ void fp32_int32_1_64(float* ptr) {
 __global__ void fp32_int32_1_32(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 32, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 32, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -71,8 +72,8 @@ __global__ void fp32_int32_1_32(float* ptr) {
 __global__ void fp32_int32_1_16(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 16, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 16, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -81,8 +82,8 @@ __global__ void fp32_int32_1_16(float* ptr) {
 __global__ void fp32_int32_1_8(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 8, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 8, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -91,8 +92,8 @@ __global__ void fp32_int32_1_8(float* ptr) {
 __global__ void fp32_int32_1_4(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 4, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 4, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -101,8 +102,8 @@ __global__ void fp32_int32_1_4(float* ptr) {
 __global__ void fp32_int32_1_2(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096 / 2, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner / 2, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -111,8 +112,8 @@ __global__ void fp32_int32_1_2(float* ptr) {
 __global__ void fp32_int32_1_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -121,8 +122,8 @@ __global__ void fp32_int32_1_1(float* ptr) {
 __global__ void fp32_int32_2_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 2>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 2>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -131,8 +132,8 @@ __global__ void fp32_int32_2_1(float* ptr) {
 __global__ void fp32_int32_4_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 4>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 4>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -141,8 +142,8 @@ __global__ void fp32_int32_4_1(float* ptr) {
 __global__ void fp32_int32_8_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 8>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 8>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -151,8 +152,8 @@ __global__ void fp32_int32_8_1(float* ptr) {
 __global__ void fp32_int32_16_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 16>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 16>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -161,8 +162,8 @@ __global__ void fp32_int32_16_1(float* ptr) {
 __global__ void fp32_int32_32_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 32>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 32>(a, b, c, d, e, f);
   }
 
   FINISH
@@ -171,8 +172,8 @@ __global__ void fp32_int32_32_1(float* ptr) {
 __global__ void fp32_int32_64_1(float* ptr) {
   INIT
 
-      for (int i = 0; i < NR_ITERATIONS; i++) {
-    fp32_int32_8_8<4096, 4096 / 64>(a, b, c, d, e, f);
+      for (int i = 0; i < nr_outer; i++) {
+    fp32_int32_8_8<nr_inner, nr_inner / 64>(a, b, c, d, e, f);
   }
 
   FINISH

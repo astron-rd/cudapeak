@@ -1,3 +1,6 @@
+#define nr_outer 4096
+#define nr_inner 1024
+
 template <int nr_int32>
 __device__ void int32_8(int2& a, int2& b, int2& c) {
 // Perform nr_int32 * 4 imad
@@ -23,8 +26,8 @@ __global__ void int32_kernel(int* ptr) {
   int2 b = make_int2(threadIdx.x, 1);
   int2 c = make_int2(threadIdx.x, 2);
 
-  for (int i = 0; i < 2048; i++) {
-    int32_8<4096>(a, b, c);
+  for (int i = 0; i < nr_outer; i++) {
+    int32_8<nr_inner>(a, b, c);
   }
 
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;

@@ -20,9 +20,10 @@ int main(int argc, const char* argv[]) {
   int maxThreadsPerBlock = benchmark.maxThreadsPerBlock();
 
   // Amount of work performed
-  int nr_iterations = 512;
+  const int nr_outer = 4096;
+  const int nr_inner = 1024;
   const double gops = (1e-9 * multiProcessorCount * maxThreadsPerBlock) *
-                      (1ULL * nr_iterations * 8192 * 2);
+                      (1ULL * nr_outer * nr_inner * 2);
   const double gbytes = 0;
 
   // Kernel dimensions

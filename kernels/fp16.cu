@@ -4,6 +4,9 @@
 
 #include "fp16.h"
 
+#define nr_outer 4096
+#define nr_inner 1024
+
 template <int nr_fp16>
 __device__ void fp16_8(half2& a, half2& b, half2& c) {
 // Perform nr_fp16 * 4 fma
@@ -82,8 +85,8 @@ __global__ void fp16_kernel(half* ptr) {
   half2 b = make_half2(1, 2);
   half2 c = make_half2(3, 4);
 
-  for (int i = 0; i < 2048; i++) {
-    fp16_8<4096>(a, b, c);
+  for (int i = 0; i < nr_outer; i++) {
+    fp16_8<nr_inner>(a, b, c);
   }
 
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;
@@ -95,8 +98,8 @@ __global__ void fp16x2_kernel(half* ptr) {
   half2 b = make_half2(1, 2);
   half2 c = make_half2(3, 4);
 
-  for (int i = 0; i < 2048; i++) {
-    fp16x2_8<4096>(a, b, c);
+  for (int i = 0; i < nr_outer; i++) {
+    fp16x2_8<nr_inner>(a, b, c);
   }
 
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;

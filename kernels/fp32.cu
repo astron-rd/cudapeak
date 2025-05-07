@@ -2,6 +2,9 @@
 #include <hip/hip_runtime.h>
 #endif
 
+#define nr_outer 4096
+#define nr_inner 1024
+
 template <int nr_fp32>
 __device__ void fp32_8(float2& a, float2& b, float2& c) {
 // Perform nr_fp32 * 4 fma
@@ -36,8 +39,8 @@ __global__ void fp32_kernel(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < 2048; i++) {
-    fp32_8<4096>(a, b, c);
+  for (int i = 0; i < nr_outer; i++) {
+    fp32_8<nr_inner>(a, b, c);
   }
 
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;

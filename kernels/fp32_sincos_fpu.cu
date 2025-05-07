@@ -1,5 +1,5 @@
-#define NR_REPETITIONS 512
-#define NR_ITERATIONS 8192
+#define nr_outer 4096
+#define nr_inner 1024
 
 template <int nr_fma, int nr_sincos>
 __device__ void fp32_sincos_fpu_1_1(float2& a, float2& b, float2& c) {
@@ -19,8 +19,8 @@ __global__ void fp32_sincos_fpu_1_8(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner; j++) {
       fp32_sincos_fpu_1_1<1, 8>(a, b, c);
     }
   }
@@ -34,8 +34,8 @@ __global__ void fp32_sincos_fpu_1_4(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner; j++) {
       fp32_sincos_fpu_1_1<1, 4>(a, b, c);
     }
   }
@@ -49,8 +49,8 @@ __global__ void fp32_sincos_fpu_1_2(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner; j++) {
       fp32_sincos_fpu_1_1<1, 2>(a, b, c);
     }
   }
@@ -64,8 +64,8 @@ __global__ void fp32_sincos_fpu_1_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner; j++) {
       fp32_sincos_fpu_1_1<1, 1>(a, b, c);
     }
   }
@@ -79,8 +79,8 @@ __global__ void fp32_sincos_fpu_2_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 2; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 2; j++) {
       fp32_sincos_fpu_1_1<2, 1>(a, b, c);
     }
   }
@@ -94,8 +94,8 @@ __global__ void fp32_sincos_fpu_4_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 4; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 4; j++) {
       fp32_sincos_fpu_1_1<4, 1>(a, b, c);
     }
   }
@@ -109,8 +109,8 @@ __global__ void fp32_sincos_fpu_8_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 8; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 8; j++) {
       fp32_sincos_fpu_1_1<8, 1>(a, b, c);
     }
   }
@@ -124,8 +124,8 @@ __global__ void fp32_sincos_fpu_16_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 16; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 16; j++) {
       fp32_sincos_fpu_1_1<16, 1>(a, b, c);
     }
   }
@@ -139,8 +139,8 @@ __global__ void fp32_sincos_fpu_32_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 32; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 32; j++) {
       fp32_sincos_fpu_1_1<32, 1>(a, b, c);
     }
   }
@@ -154,8 +154,8 @@ __global__ void fp32_sincos_fpu_64_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 64; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 64; j++) {
       fp32_sincos_fpu_1_1<64, 1>(a, b, c);
     }
   }
@@ -169,8 +169,8 @@ __global__ void fp32_sincos_fpu_128_1(float* ptr) {
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
 
-  for (int i = 0; i < NR_REPETITIONS; i++) {
-    for (int j = 0; j < NR_ITERATIONS / 128; j++) {
+  for (int i = 0; i < nr_outer; i++) {
+    for (int j = 0; j < nr_inner / 128; j++) {
       fp32_sincos_fpu_1_1<128, 1>(a, b, c);
     }
   }
