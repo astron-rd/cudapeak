@@ -63,9 +63,5 @@ if(BUILD_WITH_FMT)
   add_compile_definitions("HAVE_FMT")
 endif()
 
-if(BUILD_WITH_HIP)
-  set(CUDA_SOURCES dmem.cu fp16.cu fp32.cu mma.cu stream.cu)
-endif()
-
 add_subdirectory(common)
 add_subdirectory(benchmarks)
