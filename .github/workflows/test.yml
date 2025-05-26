@@ -19,7 +19,7 @@ jobs:
             make -C build -j
             ./build/benchmarks/fp32
             ./build/benchmarks/mma
-  slurm-w7700:
+  test-w7700:
     name: AMD W7700
     runs-on: [slurm]
     steps:
