@@ -32,7 +32,6 @@ jobs:
           time: "00:10:00"
           commands: |-
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            module load rocm
             cmake -S . -B ${BUILD_DIR} -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=gfx1101
             make -C ${BUILD_DIR} -j
             ./${BUILD_DIR}/benchmarks/fp32
