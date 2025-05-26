@@ -27,7 +27,7 @@ jobs:
         CUDA_IMAGE: ["nvidia/cuda:12.6.3-devel-ubuntu22.04"]
         CUDA_ARCH: ["80", "86", "89", "90"]
     container: ${{ matrix.CUDA_IMAGE }}
-    if: github.event_name == 'workflow_dispatch'
+    on: workflow_dispatch
     steps:
       - uses: actions/checkout@v4
       - run: apt-get update && apt-get install -y cmake git
@@ -57,7 +57,7 @@ jobs:
         ROCM_IMAGE: ["rocm/dev-ubuntu-22.04:6.1.2", "rocm/dev-ubuntu-24.04:6.2.4", "rocm/dev-ubuntu-24.04:6.3.4"]
         ROCM_ARCH: ["gfx1101", "gfx90a", "gfx940"]
     container: ${{ matrix.ROCM_IMAGE }}
-    if: github.event_name == 'workflow_dispatch'
+    on: workflow_dispatch
     steps:
       - uses: actions/checkout@v4
       - run: apt-get update && apt-get install -y cmake git hipfft-dev rocwmma-dev

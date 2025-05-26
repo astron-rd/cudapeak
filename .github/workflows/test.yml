@@ -22,7 +22,7 @@ jobs:
   test-a100:
     name: NVIDIA A100
     runs-on: [slurm]
-    if: github.event_name == 'workflow_dispatch'
+    on: workflow_dispatch
     steps:
       - uses: actions/checkout@v4
       - uses: astron-rd/slurm-action@v1
@@ -40,7 +40,7 @@ jobs:
   test-ad4000:
     name: NVIDIA AD4000
     runs-on: [slurm]
-    if: github.event_name == 'workflow_dispatch'
+    on: workflow_dispatch
     steps:
       - uses: actions/checkout@v4
       - uses: astron-rd/slurm-action@v1
