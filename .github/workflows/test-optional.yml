@@ -25,7 +25,7 @@ jobs:
           gres: gpu:A100
           time: "00:10:00"
           commands: |
-            BUILD_DIR="build-${GITHUB_RUN_ID}"
+            BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             module load spack/20250403
             module load cuda
             cmake -S . -B ${BUILD_DIR} -DCMAKE_CUDA_ARCHITECTURES=80
@@ -45,7 +45,7 @@ jobs:
           gres: gpu:AD4000
           time: "00:10:00"
           commands: |-
-            BUILD_DIR="build-${GITHUB_RUN_ID}"
+            BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             module load spack/20250403
             module load cuda
             cmake -S . -B ${BUILD_DIR} -DCMAKE_CUDA_ARCHITECTURES=89
