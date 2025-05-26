@@ -1,0 +1,30 @@
+name: build
+on:
+  push:
+jobs:
+  build-cuda:
+    name: CUDA ${{ matrix.CUDA_IMAGE }} (arch ${{ matrix.CUDA_ARCH }})
+    runs-on: [docker]
+    strategy:
+      matrix:
+        CUDA_IMAGE: ["nvidia/cuda:12.8.1-devel-ubuntu24.04"]
+        CUDA_ARCH: ["80", "86", "89", "90", "120"]
+    container: ${{ matrix.CUDA_IMAGE }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y cmake git
+      - run: cmake -S . -B build -DCMAKE_CUDA_ARCHITECTURES=${{ matrix.CUDA_ARCH }}
+      - run: make -C build -j
+  build-rocm:
+    name: ${{ matrix.ROCM_IMAGE }} (arch ${{ matrix.ROCM_ARCH }})
+    runs-on: [docker]
+    strategy:
+      matrix:
+        ROCM_IMAGE: ["rocm/dev-ubuntu-24.04:6.4"]
+        ROCM_ARCH: ["gfx1101", "gfx90a", "gfx940"]
+    container: ${{ matrix.ROCM_IMAGE }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: apt-get update && apt-get install -y cmake git hipfft-dev rocwmma-dev
+      - run: cmake -S . -B build -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=${{ matrix.ROCM_ARCH }}
+      - run: make -C build -j
