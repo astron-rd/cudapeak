@@ -7,7 +7,7 @@ jobs:
     runs-on: [slurm]
     steps:
       - uses: actions/checkout@v4
-      - uses: astron-rd/slurm-action@v1
+      - uses: astron-rd/slurm-action@v1.1
         with:
           partition: defq
           gres: gpu:A4000
@@ -24,7 +24,7 @@ jobs:
     runs-on: [slurm]
     steps:
       - uses: actions/checkout@v4
-      - uses: astron-rd/slurm-action@v1
+      - uses: astron-rd/slurm-action@v1.1
         with:
           partition: defq
           gres: gpu:W7700
