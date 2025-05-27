@@ -13,13 +13,12 @@ jobs:
           gres: gpu:A4000
           time: "00:10:00"
           commands: |
-            BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             module load spack/20250403
             module load cuda
-            cmake -S . -B ${BUILD_DIR} -DCMAKE_CUDA_ARCHITECTURES=86
-            make -C ${BUILD_DIR} -j
-            ${BUILD_DIR}/benchmarks/fp32
-            ${BUILD_DIR}/benchmarks/mma
+            cmake -S . -B build -DCMAKE_CUDA_ARCHITECTURES=86
+            make -C build -j
+            ./build/benchmarks/fp32
+            ./build/benchmarks/mma
   test-w7700:
     name: AMD W7700
     runs-on: [slurm]
@@ -31,8 +30,7 @@ jobs:
           gres: gpu:W7700
           time: "00:10:00"
           commands: |-
-            BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            cmake -S . -B ${BUILD_DIR} -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=gfx1101
-            make -C ${BUILD_DIR} -j
-            ${BUILD_DIR}/benchmarks/fp32
-            ${BUILD_DIR}/benchmarks/mma
+            cmake -S . -B build -DBUILD_WITH_HIP=1 -DCMAKE_HIP_ARCHITECTURES=gfx1101
+            make -C build -j
+            ./build/benchmarks/fp32
+            ./build/benchmarks/mma
