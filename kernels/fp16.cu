@@ -54,14 +54,15 @@ template <int nr_fp16> __device__ void fp16x2_8(half2 &a, half2 &b, half2 &c) {
   __half2 b_yny = __halves2half2(-b.y, b.y);
   __half2 c_yx = __halves2half2(c.y, c.x);
 
+  // To minimize their overhead, these casts are done outside the inner loop
+  unsigned int a_xy_ui = *reinterpret_cast<unsigned int *>(&a_xy);
+  unsigned int b_xx_ui = *reinterpret_cast<unsigned int *>(&b_xx);
+  unsigned int c_xy_ui = *reinterpret_cast<unsigned int *>(&c_xy);
+  unsigned int b_yny_ui = *reinterpret_cast<unsigned int *>(&b_yny);
+  unsigned int c_yx_ui = *reinterpret_cast<unsigned int *>(&c_yx);
+
 #pragma unroll nr_fp16
   for (int i = 0; i < nr_fp16; i++) {
-    unsigned int a_xy_ui = *reinterpret_cast<unsigned int *>(&a_xy);
-    unsigned int b_xx_ui = *reinterpret_cast<unsigned int *>(&b_xx);
-    unsigned int c_xy_ui = *reinterpret_cast<unsigned int *>(&c_xy);
-    unsigned int b_yny_ui = *reinterpret_cast<unsigned int *>(&b_yny);
-    unsigned int c_yx_ui = *reinterpret_cast<unsigned int *>(&c_yx);
-
     asm("fma.rn.f16x2 %0, %1, %2, %3;"
         : "=r"(a_xy_ui)
         : "r"(b_xx_ui), "r"(c_xy_ui), "r"(a_xy_ui));
@@ -69,10 +70,9 @@ template <int nr_fp16> __device__ void fp16x2_8(half2 &a, half2 &b, half2 &c) {
     asm("fma.rn.f16x2 %0, %1, %2, %3;"
         : "=r"(a_xy_ui)
         : "r"(b_yny_ui), "r"(c_yx_ui), "r"(a_xy_ui));
-
-    a_xy = *reinterpret_cast<__half2 *>(&a_xy_ui);
   }
 
+  a_xy = *reinterpret_cast<__half2 *>(&a_xy_ui);
   a.x = __low2half(a_xy);
   a.y = __high2half(a_xy);
 }
