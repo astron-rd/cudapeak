@@ -1,7 +1,6 @@
 #include "cuda.h"
 
-template <int nr_fp32>
-__device__ void dmem_fp32_16_8(float2& a, float4* data) {
+template <int nr_fp32> __device__ void dmem_fp32_16_8(float2 &a, float4 *data) {
   // Load 2 complex numbers (16 bytes)
   float4 x = *data;
   float2 b = make_float2(x.x, x.y);
@@ -29,14 +28,14 @@ __device__ void dmem_fp32_16_8(float2& a, float4* data) {
 
 #define FETCH_PER_BLOCK 16
 
-#define INIT                                            \
-  float2 a = make_float2(threadIdx.x, threadIdx.x + 1); \
+#define INIT                                                                   \
+  float2 a = make_float2(threadIdx.x, threadIdx.x + 1);                        \
   int id = (blockIdx.x * blockDim.x * FETCH_PER_BLOCK) + threadIdx.x;
 
-#define FINISH \
+#define FINISH                                                                 \
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = make_float4(a.x, a.y, 0, 0);
 
-__global__ void fp32_dmem_01(float4* ptr) {
+__global__ void fp32_dmem_01(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -46,7 +45,7 @@ __global__ void fp32_dmem_01(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_02(float4* ptr) {
+__global__ void fp32_dmem_02(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -56,7 +55,7 @@ __global__ void fp32_dmem_02(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_04(float4* ptr) {
+__global__ void fp32_dmem_04(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -66,7 +65,7 @@ __global__ void fp32_dmem_04(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_08(float4* ptr) {
+__global__ void fp32_dmem_08(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -76,7 +75,7 @@ __global__ void fp32_dmem_08(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_16(float4* ptr) {
+__global__ void fp32_dmem_16(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -86,7 +85,7 @@ __global__ void fp32_dmem_16(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_32(float4* ptr) {
+__global__ void fp32_dmem_32(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -96,7 +95,7 @@ __global__ void fp32_dmem_32(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_64(float4* ptr) {
+__global__ void fp32_dmem_64(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -106,7 +105,7 @@ __global__ void fp32_dmem_64(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_128(float4* ptr) {
+__global__ void fp32_dmem_128(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {
@@ -116,7 +115,7 @@ __global__ void fp32_dmem_128(float4* ptr) {
   FINISH
 }
 
-__global__ void fp32_dmem_256(float4* ptr) {
+__global__ void fp32_dmem_256(float4 *ptr) {
   INIT
 
       for (int i = 0; i < FETCH_PER_BLOCK; i++) {

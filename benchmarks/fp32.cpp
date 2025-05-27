@@ -1,8 +1,8 @@
 #include "common/common.h"
 
-__global__ void fp32_kernel(float* ptr);
+__global__ void fp32_kernel(float *ptr);
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
 
   // Parameters
@@ -24,7 +24,7 @@ int main(int argc, const char* argv[]) {
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void*>(&fp32_kernel), grid, block, "fp32",
+    benchmark.run(reinterpret_cast<void *>(&fp32_kernel), grid, block, "fp32",
                   gops, gbytes);
   }
 

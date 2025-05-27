@@ -17,8 +17,8 @@
 #include "Measurement.h"
 
 class Benchmark {
- public:
-  Benchmark(int argc, const char* argv[]);
+public:
+  Benchmark(int argc, const char *argv[]);
 
 #if defined(__HIP_PLATFORM_AMD__)
   bool isCDNA();
@@ -34,9 +34,9 @@ class Benchmark {
 #endif
 
   void allocate(size_t bytes);
-  void run(void* kernel, dim3 grid, dim3 block, const char* name,
+  void run(void *kernel, dim3 grid, dim3 block, const char *name,
            double gops = 0, double gbytes = 0);
-  void report(std::string name, double gops, double gbytes, Measurement& m);
+  void report(std::string name, double gops, double gbytes, Measurement &m);
 
   int multiProcessorCount();
   int clockRate();
@@ -61,16 +61,16 @@ class Benchmark {
   }
 #endif
 
- protected:
+protected:
   double measure_power();
   double measure_frequency();
-  float run_kernel(void* kernel, dim3 grid, dim3 block, int n = 1);
-  Measurement measure_kernel(void* kernel, dim3 grid, dim3 block);
-  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block,
-                             cu::Stream& stream,
-                             const std::vector<const void*>& args);
+  float run_kernel(void *kernel, dim3 grid, dim3 block, int n = 1);
+  Measurement measure_kernel(void *kernel, dim3 grid, dim3 block);
+  virtual void launch_kernel(void *kernel, dim3 grid, dim3 block,
+                             cu::Stream &stream,
+                             const std::vector<const void *> &args);
 
-  std::vector<const void*> args_;
+  std::vector<const void *> args_;
   unsigned nr_benchmarks_;
   unsigned nr_iterations_;
   std::unique_ptr<cu::Device> device_;
@@ -90,4 +90,4 @@ class Benchmark {
 #endif
 };
 
-#endif  // end BENCHMARK_H
+#endif // end BENCHMARK_H

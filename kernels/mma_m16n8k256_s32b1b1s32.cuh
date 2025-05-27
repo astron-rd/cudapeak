@@ -19,12 +19,12 @@ template <>
 class fragment<accumulator, 16, 8, 256, int> : public __frag_base<int, 4> {};
 
 inline __device__ void bmma_sync(
-    fragment<accumulator, 16, 8, 256, int>& d,
-    const fragment<matrix_a, 16, 8, 256, experimental::precision::b1,
-                   row_major>& a,
-    const fragment<matrix_b, 16, 8, 256, experimental::precision::b1,
-                   col_major>& b,
-    const fragment<accumulator, 16, 8, 256, int>& c,
+    fragment<accumulator, 16, 8, 256, int> &d,
+    const fragment<matrix_a, 16, 8, 256, experimental::precision::b1, row_major>
+        &a,
+    const fragment<matrix_b, 16, 8, 256, experimental::precision::b1, col_major>
+        &b,
+    const fragment<accumulator, 16, 8, 256, int> &c,
     experimental::bmmaBitOp bitOp = experimental::bmmaBitOpXOR,
     experimental::bmmaAccumulateOp accOp = experimental::bmmaAccumulateOpPOPC) {
   if (bitOp == experimental::bmmaBitOpXOR) {
@@ -45,28 +45,28 @@ inline __device__ void bmma_sync(
 }
 
 inline __device__ void load_matrix_sync(
-    fragment<matrix_a, 16, 8, 256, experimental::precision::b1, row_major>& a,
-    const void* p, unsigned ldm) {
-  a.x[0] = ((const int*)p)[ldm / 32 * (laneid() / 4) + laneid() % 4];
-  a.x[1] = ((const int*)p)[ldm / 32 * (laneid() / 4 + 8) + laneid() % 4];
-  a.x[2] = ((const int*)p)[ldm / 32 * (laneid() / 4) + laneid() % 4 + 4];
-  a.x[3] = ((const int*)p)[ldm / 32 * (laneid() / 4 + 8) + laneid() % 4 + 4];
+    fragment<matrix_a, 16, 8, 256, experimental::precision::b1, row_major> &a,
+    const void *p, unsigned ldm) {
+  a.x[0] = ((const int *)p)[ldm / 32 * (laneid() / 4) + laneid() % 4];
+  a.x[1] = ((const int *)p)[ldm / 32 * (laneid() / 4 + 8) + laneid() % 4];
+  a.x[2] = ((const int *)p)[ldm / 32 * (laneid() / 4) + laneid() % 4 + 4];
+  a.x[3] = ((const int *)p)[ldm / 32 * (laneid() / 4 + 8) + laneid() % 4 + 4];
 }
 
 inline __device__ void load_matrix_sync(
-    fragment<matrix_b, 16, 8, 256, experimental::precision::b1, col_major>& b,
-    const void* p, unsigned ldm) {
-  b.x[0] = ((const int*)p)[ldm / 32 * (laneid() / 4) + laneid() % 4];
-  b.x[1] = ((const int*)p)[ldm / 32 * (laneid() / 4) + laneid() % 4 + 4];
+    fragment<matrix_b, 16, 8, 256, experimental::precision::b1, col_major> &b,
+    const void *p, unsigned ldm) {
+  b.x[0] = ((const int *)p)[ldm / 32 * (laneid() / 4) + laneid() % 4];
+  b.x[1] = ((const int *)p)[ldm / 32 * (laneid() / 4) + laneid() % 4 + 4];
 }
 
-inline __device__ void store_matrix_sync(
-    int* p, const fragment<accumulator, 16, 8, 256, int>& d, unsigned ldm,
-    layout_t layout) {
+inline __device__ void
+store_matrix_sync(int *p, const fragment<accumulator, 16, 8, 256, int> &d,
+                  unsigned ldm, layout_t layout) {
   if (layout == mem_row_major) {
-    ((int2*)p)[ldm / 2 * (laneid() / 4) + laneid() % 4] =
+    ((int2 *)p)[ldm / 2 * (laneid() / 4) + laneid() % 4] =
         make_int2(d.x[0], d.x[1]);
-    ((int2*)p)[ldm / 2 * (laneid() / 4 + 8) + laneid() % 4] =
+    ((int2 *)p)[ldm / 2 * (laneid() / 4 + 8) + laneid() % 4] =
         make_int2(d.x[2], d.x[3]);
   } else {
     p[(laneid() % 4) * 2 * ldm + (laneid() / 4)] = d.x[0];

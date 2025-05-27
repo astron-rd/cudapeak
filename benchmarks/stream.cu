@@ -4,12 +4,12 @@
 
 #include "common/common.h"
 
-#define STREAM_arguments_float                                         \
-  float *__restrict__ a, float *__restrict__ b, float *__restrict__ c, \
+#define STREAM_arguments_float                                                 \
+  float *__restrict__ a, float *__restrict__ b, float *__restrict__ c,         \
       float scalar, int len
 
-#define STREAM_arguments_double                                           \
-  double *__restrict__ a, double *__restrict__ b, double *__restrict__ c, \
+#define STREAM_arguments_double                                                \
+  double *__restrict__ a, double *__restrict__ b, double *__restrict__ c,      \
       double scalar, int len
 
 __global__ void STREAM_Triad_float(STREAM_arguments_float);
@@ -28,17 +28,16 @@ __global__ void STREAM_Scale_double(STREAM_arguments_double);
 
 __global__ void STREAM_Copy_double(STREAM_arguments_double);
 
-template <typename T>
-class BenchmarkStream : public Benchmark {
- public:
-  BenchmarkStream(int argc, const char* argv[]) : Benchmark(argc, argv) {
+template <typename T> class BenchmarkStream : public Benchmark {
+public:
+  BenchmarkStream(int argc, const char *argv[]) : Benchmark(argc, argv) {
     const size_t N = totalGlobalMem() / sizeof(T) / 4;
     N_ = roundToPowOf2(N);
     allocate(N_ * sizeof(T));
     args_.resize(5);
-    args_[0] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_a_));
-    args_[1] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_b_));
-    args_[2] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_c_));
+    args_[0] = reinterpret_cast<const void *>(static_cast<CUdeviceptr>(*d_a_));
+    args_[1] = reinterpret_cast<const void *>(static_cast<CUdeviceptr>(*d_b_));
+    args_[2] = reinterpret_cast<const void *>(static_cast<CUdeviceptr>(*d_c_));
     args_[3] = &scale_;
     args_[4] = &N_;
   }
@@ -52,27 +51,27 @@ class BenchmarkStream : public Benchmark {
     dim3 block(maxThreadsPerBlock());
     dim3 grid(N_ / block.x);
 
-    void* copy_kernel;
-    void* scale_kernel;
-    void* add_kernel;
-    void* triad_kernel;
+    void *copy_kernel;
+    void *scale_kernel;
+    void *add_kernel;
+    void *triad_kernel;
 
     std::string names[4] = {"copy", "scale", "add", "triad"};
 
     if constexpr (std::is_same_v<T, double>) {
-      copy_kernel = reinterpret_cast<void*>(&STREAM_Copy_double);
-      scale_kernel = reinterpret_cast<void*>(&STREAM_Scale_double);
-      add_kernel = reinterpret_cast<void*>(&STREAM_Add_double);
-      triad_kernel = reinterpret_cast<void*>(&STREAM_Triad_double);
-      for (std::string& name : names) {
+      copy_kernel = reinterpret_cast<void *>(&STREAM_Copy_double);
+      scale_kernel = reinterpret_cast<void *>(&STREAM_Scale_double);
+      add_kernel = reinterpret_cast<void *>(&STREAM_Add_double);
+      triad_kernel = reinterpret_cast<void *>(&STREAM_Triad_double);
+      for (std::string &name : names) {
         name = name + "_double";
       }
     } else if constexpr (std::is_same_v<T, float>) {
-      copy_kernel = reinterpret_cast<void*>(&STREAM_Copy_float);
-      scale_kernel = reinterpret_cast<void*>(&STREAM_Scale_float);
-      add_kernel = reinterpret_cast<void*>(&STREAM_Add_float);
-      triad_kernel = reinterpret_cast<void*>(&STREAM_Triad_float);
-      for (std::string& name : names) {
+      copy_kernel = reinterpret_cast<void *>(&STREAM_Copy_float);
+      scale_kernel = reinterpret_cast<void *>(&STREAM_Scale_float);
+      add_kernel = reinterpret_cast<void *>(&STREAM_Add_float);
+      triad_kernel = reinterpret_cast<void *>(&STREAM_Triad_float);
+      for (std::string &name : names) {
         name = name + "_float";
       }
     } else {
@@ -87,17 +86,17 @@ class BenchmarkStream : public Benchmark {
     }
   }
 
- private:
-  virtual void launch_kernel(void* kernel, dim3 grid, dim3 block,
-                             cu::Stream& stream,
-                             const std::vector<const void*>& args) override {
+private:
+  virtual void launch_kernel(void *kernel, dim3 grid, dim3 block,
+                             cu::Stream &stream,
+                             const std::vector<const void *> &args) override {
     assert(args.size() == 5);
-    T* a = const_cast<T*>(reinterpret_cast<const T*>(args[0]));
-    T* b = const_cast<T*>(reinterpret_cast<const T*>(args[1]));
-    T* c = const_cast<T*>(reinterpret_cast<const T*>(args[2]));
-    T scale = *reinterpret_cast<const T*>(args[3]);
-    size_t N = *reinterpret_cast<const size_t*>(args[4]);
-    ((void (*)(T*, T*, T*, T, int))kernel)<<<grid, block, 0, *stream_>>>(
+    T *a = const_cast<T *>(reinterpret_cast<const T *>(args[0]));
+    T *b = const_cast<T *>(reinterpret_cast<const T *>(args[1]));
+    T *c = const_cast<T *>(reinterpret_cast<const T *>(args[2]));
+    T scale = *reinterpret_cast<const T *>(args[3]);
+    size_t N = *reinterpret_cast<const size_t *>(args[4]);
+    ((void (*)(T *, T *, T *, T, int))kernel)<<<grid, block, 0, *stream_>>>(
         a, b, c, scale, N);
   };
 
@@ -121,7 +120,7 @@ class BenchmarkStream : public Benchmark {
   std::unique_ptr<cu::DeviceMemory> d_c_;
 };
 
-int main(int argc, const char* argv[]) {
+int main(int argc, const char *argv[]) {
   BenchmarkStream<float> benchmark(argc, argv);
   benchmark.benchmark();
   return EXIT_SUCCESS;

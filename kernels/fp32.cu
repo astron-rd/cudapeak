@@ -5,8 +5,7 @@
 #define nr_outer 4096
 #define nr_inner 1024
 
-template <int nr_fp32>
-__device__ void fp32_8(float2& a, float2& b, float2& c) {
+template <int nr_fp32> __device__ void fp32_8(float2 &a, float2 &b, float2 &c) {
 // Perform nr_fp32 * 4 fma
 #if defined(__HIP_PLATFORM_AMD__)
   for (int i = 0; i < nr_fp32; i++) {
@@ -34,7 +33,7 @@ __device__ void fp32_8(float2& a, float2& b, float2& c) {
 #endif
 }
 
-__global__ void fp32_kernel(float* ptr) {
+__global__ void fp32_kernel(float *ptr) {
   float2 a = make_float2(threadIdx.x, threadIdx.x + 1);
   float2 b = make_float2(1, 2);
   float2 c = make_float2(3, 4);
