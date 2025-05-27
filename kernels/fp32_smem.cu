@@ -1,7 +1,6 @@
 #include "cuda.h"
 
-template <int nr_fp32>
-__device__ void smem_fp32_16_8(float2& a, float4* data) {
+template <int nr_fp32> __device__ void smem_fp32_16_8(float2 &a, float4 *data) {
   // Load 2 complex numbers (16 bytes)
   float4 x = *data;
   float2 b = make_float2(x.x, x.y);
@@ -30,16 +29,16 @@ __device__ void smem_fp32_16_8(float2& a, float4* data) {
 
 __shared__ float4 data[FETCH_PER_BLOCK];
 
-#define INIT                                                       \
-  float2 a = make_float2(threadIdx.x, threadIdx.x + 1);            \
-  for (int i = blockIdx.x; i < FETCH_PER_BLOCK; i += blockDim.x) { \
-    data[i].x = ptr[i];                                            \
-    data[i].y = ptr[i] + 1;                                        \
+#define INIT                                                                   \
+  float2 a = make_float2(threadIdx.x, threadIdx.x + 1);                        \
+  for (int i = blockIdx.x; i < FETCH_PER_BLOCK; i += blockDim.x) {             \
+    data[i].x = ptr[i];                                                        \
+    data[i].y = ptr[i] + 1;                                                    \
   }
 
 #define FINISH ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y;
 
-__global__ void fp32_smem_01(float* ptr) {
+__global__ void fp32_smem_01(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS; r++) for (int i = 0;
@@ -51,7 +50,7 @@ __global__ void fp32_smem_01(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_02(float* ptr) {
+__global__ void fp32_smem_02(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 2;
@@ -63,7 +62,7 @@ __global__ void fp32_smem_02(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_04(float* ptr) {
+__global__ void fp32_smem_04(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 4;
@@ -75,7 +74,7 @@ __global__ void fp32_smem_04(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_08(float* ptr) {
+__global__ void fp32_smem_08(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 8;
@@ -87,7 +86,7 @@ __global__ void fp32_smem_08(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_16(float* ptr) {
+__global__ void fp32_smem_16(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 16;
@@ -99,7 +98,7 @@ __global__ void fp32_smem_16(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_32(float* ptr) {
+__global__ void fp32_smem_32(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 32;
@@ -111,7 +110,7 @@ __global__ void fp32_smem_32(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_64(float* ptr) {
+__global__ void fp32_smem_64(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 64;
@@ -123,7 +122,7 @@ __global__ void fp32_smem_64(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_smem_128(float* ptr) {
+__global__ void fp32_smem_128(float *ptr) {
   INIT
 
       for (int r = 0; r < NR_REPETITIONS / 128;

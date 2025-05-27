@@ -11,7 +11,7 @@
 
 namespace {
 
-cxxopts::Options setupCommandLineParser(const char* argv[]) {
+cxxopts::Options setupCommandLineParser(const char *argv[]) {
   cxxopts::Options options(argv[0]);
 
   const unsigned NR_BENCHMARKS = 1;
@@ -23,7 +23,7 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
   const unsigned MEASURE_FREQUENCY = false;
 #endif
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
-  const unsigned BENCHMARK_DURATION = 4000;  // ms
+  const unsigned BENCHMARK_DURATION = 4000; // ms
 #endif
   const unsigned DEVICE_ID = 0;
 
@@ -52,7 +52,7 @@ cxxopts::Options setupCommandLineParser(const char* argv[]) {
   return options;
 }
 
-cxxopts::ParseResult getCommandLineOptions(int argc, const char* argv[]) {
+cxxopts::ParseResult getCommandLineOptions(int argc, const char *argv[]) {
   cxxopts::Options options = setupCommandLineParser(argv);
 
   try {
@@ -65,17 +65,17 @@ cxxopts::ParseResult getCommandLineOptions(int argc, const char* argv[]) {
 
     return result;
 
-  } catch (const cxxopts::exceptions::exception& e) {
+  } catch (const cxxopts::exceptions::exception &e) {
     std::cerr << "Error parsing command-line options: " << e.what()
               << std::endl;
     exit(EXIT_FAILURE);
   }
 }
 
-}  // end namespace
+} // end namespace
 
 void Benchmark::report(std::string name, double gops, double gbytes,
-                       Measurement& m) {
+                       Measurement &m) {
   const double milliseconds = m.runtime;
   const double seconds = milliseconds * 1e-3;
   std::cout << std::setw(w1) << std::string(name) << ": ";
@@ -87,7 +87,7 @@ void Benchmark::report(std::string name, double gops, double gbytes,
   std::cout << std::endl;
 }
 
-Benchmark::Benchmark(int argc, const char* argv[]) {
+Benchmark::Benchmark(int argc, const char *argv[]) {
   // Parse command-line options
   cxxopts::ParseResult results = getCommandLineOptions(argc, argv);
   const unsigned device_number = results["device_id"].as<unsigned>();
@@ -207,10 +207,10 @@ void Benchmark::allocate(size_t bytes) {
   stream_->memcpyHtoDAsync(*d_data_, h_data, bytes);
   stream_->synchronize();
   args_.resize(1);
-  args_[0] = reinterpret_cast<const void*>(static_cast<CUdeviceptr>(*d_data_));
+  args_[0] = reinterpret_cast<const void *>(static_cast<CUdeviceptr>(*d_data_));
 }
 
-void Benchmark::run(void* kernel, dim3 grid, dim3 block, const char* name,
+void Benchmark::run(void *kernel, dim3 grid, dim3 block, const char *name,
                     double gops, double gbytes) {
   Measurement m = measure_kernel(kernel, grid, block);
   report(name, gops, gbytes, m);
@@ -231,7 +231,7 @@ int Benchmark::maxThreadsPerBlock() {
 
 size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }
 
-float Benchmark::run_kernel(void* kernel, dim3 grid, dim3 block, int n) {
+float Benchmark::run_kernel(void *kernel, dim3 grid, dim3 block, int n) {
   cu::Event start;
   cu::Event end;
   stream_->record(start);
@@ -277,7 +277,7 @@ double Benchmark::measure_frequency() {
   return 0;
 }
 
-Measurement Benchmark::measure_kernel(void* kernel, dim3 grid, dim3 block) {
+Measurement Benchmark::measure_kernel(void *kernel, dim3 grid, dim3 block) {
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
   if (measureContinuous()) {
     Measurement m;

@@ -2,8 +2,8 @@
 #define nr_inner 512
 
 template <int nr_fp32, int nr_int32>
-__device__ void fp32_int32_8_8(float2& a, float2& b, float2& c, int2& d,
-                               int2& e, int2& f) {
+__device__ void fp32_int32_8_8(float2 &a, float2 &b, float2 &c, int2 &d,
+                               int2 &e, int2 &f) {
 // Perform nr_fp32 * 4 fma
 #pragma unroll nr_fp32
   for (int i = 0; i < nr_fp32; i++) {
@@ -38,18 +38,18 @@ __device__ void fp32_int32_8_8(float2& a, float2& b, float2& c, int2& d,
   }
 }
 
-#define INIT                              \
-  float2 a = make_float2(threadIdx.x, 0); \
-  float2 b = make_float2(threadIdx.x, 1); \
-  float2 c = make_float2(threadIdx.x, 2); \
-  int2 d = make_int2(threadIdx.x, 0);     \
-  int2 e = make_int2(threadIdx.x, 1);     \
+#define INIT                                                                   \
+  float2 a = make_float2(threadIdx.x, 0);                                      \
+  float2 b = make_float2(threadIdx.x, 1);                                      \
+  float2 c = make_float2(threadIdx.x, 2);                                      \
+  int2 d = make_int2(threadIdx.x, 0);                                          \
+  int2 e = make_int2(threadIdx.x, 1);                                          \
   int2 f = make_int2(threadIdx.x, 2);
 
-#define FINISH \
+#define FINISH                                                                 \
   ptr[blockIdx.x * blockDim.x + threadIdx.x] = a.x + a.y + d.x + d.y;
 
-__global__ void fp32_int32_1_64(float* ptr) {
+__global__ void fp32_int32_1_64(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -59,7 +59,7 @@ __global__ void fp32_int32_1_64(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_32(float* ptr) {
+__global__ void fp32_int32_1_32(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -69,7 +69,7 @@ __global__ void fp32_int32_1_32(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_16(float* ptr) {
+__global__ void fp32_int32_1_16(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -79,7 +79,7 @@ __global__ void fp32_int32_1_16(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_8(float* ptr) {
+__global__ void fp32_int32_1_8(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -89,7 +89,7 @@ __global__ void fp32_int32_1_8(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_4(float* ptr) {
+__global__ void fp32_int32_1_4(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -99,7 +99,7 @@ __global__ void fp32_int32_1_4(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_2(float* ptr) {
+__global__ void fp32_int32_1_2(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -109,7 +109,7 @@ __global__ void fp32_int32_1_2(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_1_1(float* ptr) {
+__global__ void fp32_int32_1_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -119,7 +119,7 @@ __global__ void fp32_int32_1_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_2_1(float* ptr) {
+__global__ void fp32_int32_2_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -129,7 +129,7 @@ __global__ void fp32_int32_2_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_4_1(float* ptr) {
+__global__ void fp32_int32_4_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -139,7 +139,7 @@ __global__ void fp32_int32_4_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_8_1(float* ptr) {
+__global__ void fp32_int32_8_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -149,7 +149,7 @@ __global__ void fp32_int32_8_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_16_1(float* ptr) {
+__global__ void fp32_int32_16_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -159,7 +159,7 @@ __global__ void fp32_int32_16_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_32_1(float* ptr) {
+__global__ void fp32_int32_32_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {
@@ -169,7 +169,7 @@ __global__ void fp32_int32_32_1(float* ptr) {
   FINISH
 }
 
-__global__ void fp32_int32_64_1(float* ptr) {
+__global__ void fp32_int32_64_1(float *ptr) {
   INIT
 
       for (int i = 0; i < nr_outer; i++) {

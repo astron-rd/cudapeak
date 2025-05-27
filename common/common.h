@@ -11,4 +11,4 @@ static constexpr int w2 = 7;
 
 unsigned roundToPowOf2(unsigned number);
 
-#endif  // end COMMON_H
+#endif // end COMMON_H

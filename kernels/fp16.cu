@@ -7,8 +7,7 @@
 #define nr_outer 4096
 #define nr_inner 1024
 
-template <int nr_fp16>
-__device__ void fp16_8(half2& a, half2& b, half2& c) {
+template <int nr_fp16> __device__ void fp16_8(half2 &a, half2 &b, half2 &c) {
 // Perform nr_fp16 * 4 fma
 #if defined(__HIP_PLATFORM_AMD__)
   for (int i = 0; i < nr_fp16; i++) {
@@ -48,8 +47,7 @@ __device__ void fp16_8(half2& a, half2& b, half2& c) {
 }
 
 #if !defined(__HIP_PLATFORM_AMD__)
-template <int nr_fp16>
-__device__ void fp16x2_8(half2& a, half2& b, half2& c) {
+template <int nr_fp16> __device__ void fp16x2_8(half2 &a, half2 &b, half2 &c) {
   __half2 a_xy = __halves2half2(a.x, a.y);
   __half2 b_xx = __halves2half2(b.x, b.x);
   __half2 c_xy = __halves2half2(c.x, c.y);
@@ -58,11 +56,11 @@ __device__ void fp16x2_8(half2& a, half2& b, half2& c) {
 
 #pragma unroll nr_fp16
   for (int i = 0; i < nr_fp16; i++) {
-    unsigned int a_xy_ui = *reinterpret_cast<unsigned int*>(&a_xy);
-    unsigned int b_xx_ui = *reinterpret_cast<unsigned int*>(&b_xx);
-    unsigned int c_xy_ui = *reinterpret_cast<unsigned int*>(&c_xy);
-    unsigned int b_yny_ui = *reinterpret_cast<unsigned int*>(&b_yny);
-    unsigned int c_yx_ui = *reinterpret_cast<unsigned int*>(&c_yx);
+    unsigned int a_xy_ui = *reinterpret_cast<unsigned int *>(&a_xy);
+    unsigned int b_xx_ui = *reinterpret_cast<unsigned int *>(&b_xx);
+    unsigned int c_xy_ui = *reinterpret_cast<unsigned int *>(&c_xy);
+    unsigned int b_yny_ui = *reinterpret_cast<unsigned int *>(&b_yny);
+    unsigned int c_yx_ui = *reinterpret_cast<unsigned int *>(&c_yx);
 
     asm("fma.rn.f16x2 %0, %1, %2, %3;"
         : "=r"(a_xy_ui)
@@ -72,7 +70,7 @@ __device__ void fp16x2_8(half2& a, half2& b, half2& c) {
         : "=r"(a_xy_ui)
         : "r"(b_yny_ui), "r"(c_yx_ui), "r"(a_xy_ui));
 
-    a_xy = *reinterpret_cast<__half2*>(&a_xy_ui);
+    a_xy = *reinterpret_cast<__half2 *>(&a_xy_ui);
   }
 
   a.x = __low2half(a_xy);
@@ -80,7 +78,7 @@ __device__ void fp16x2_8(half2& a, half2& b, half2& c) {
 }
 #endif
 
-__global__ void fp16_kernel(half* ptr) {
+__global__ void fp16_kernel(half *ptr) {
   half2 a = make_half2(threadIdx.x, threadIdx.x + 1);
   half2 b = make_half2(1, 2);
   half2 c = make_half2(3, 4);
@@ -93,7 +91,7 @@ __global__ void fp16_kernel(half* ptr) {
 }
 
 #if !defined(__HIP_PLATFORM_AMD__)
-__global__ void fp16x2_kernel(half* ptr) {
+__global__ void fp16x2_kernel(half *ptr) {
   half2 a = make_half2(threadIdx.x, threadIdx.x + 1);
   half2 b = make_half2(1, 2);
   half2 c = make_half2(3, 4);
