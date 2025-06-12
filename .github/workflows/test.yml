@@ -14,6 +14,7 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
+            source /etc/profile
             module load spack/d4468dcc
             module load cmake cuda
             cmake -S . -B ${BUILD_DIR} -DCMAKE_CUDA_ARCHITECTURES=70
