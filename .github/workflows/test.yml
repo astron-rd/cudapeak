@@ -2,6 +2,24 @@ name: test
 on:
   push:
 jobs:
+  test-v100:
+    name: NVIDIA V100
+    runs-on: [slurm]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astron-rd/slurm-action@v1
+        with:
+          partition: cbtq
+          gres: gpu:V100
+          time: "00:10:00"
+          commands: |
+            BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
+            module load spack/d4468dcc
+            module load cmake cuda
+            cmake -S . -B ${BUILD_DIR} -DCMAKE_CUDA_ARCHITECTURES=70
+            make -C ${BUILD_DIR} -j
+            ${BUILD_DIR}/benchmarks/fp32
+            ${BUILD_DIR}/benchmarks/mma
   test-a4000:
     name: NVIDIA A4000
     runs-on: [slurm]
