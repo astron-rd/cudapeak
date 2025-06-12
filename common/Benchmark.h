@@ -28,6 +28,7 @@ public:
   bool isRDNA2();
   bool isRDNA3();
 #else
+  bool isVolta();
   bool isAda();
   bool isHopper();
   bool isBlackwell();

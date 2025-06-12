@@ -179,6 +179,11 @@ bool Benchmark::isRDNA3() {
           (arch.find("gfx1102") != std::string::npos));
 }
 #else
+bool Benchmark::isVolta() {
+  const std::string arch(device_->getArch());
+  return (arch.find("sm_70") != std::string::npos);
+}
+
 bool Benchmark::isAda() {
   const std::string arch(device_->getArch());
   return (arch.find("sm_89") != std::string::npos);

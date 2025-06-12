@@ -137,8 +137,21 @@ __device__ void mma_kernel(Tout *data) {
   END
 }
 
+#if defined(__CUDA_SUBBYTE_IMMA__)
+#define ENABLE_INT1
+#define ENABLE_INT4
 #include "mma_m16n8k256_s32b1b1s32.cuh"
 #include "mma_m8n8k32_s32s4s4s32.cuh"
+#endif
+
+#if __CUDA_ARCH >= 750
+#define ENABLE_INT8
+#endif
+
+#if __CUDA_ARCH >= 800
+#define ENABLE_TF32
+#define ENABLE_BF16
+#endif
 
 #if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 120
 #define ENABLE_FP8
@@ -152,6 +165,7 @@ __device__ void mma_kernel_ptx(Tout *data) {
   END
 }
 
+#if defined(ENABLE_INT1)
 template <typename Tin, typename Tout, unsigned M, unsigned N, unsigned K,
           experimental::bmmaBitOp bitOp>
 __device__ void bmma_kernel(Tout *data) {
@@ -159,33 +173,46 @@ __device__ void bmma_kernel(Tout *data) {
   bmma_sync(sum, aFrag, bFrag, sum, bitOp);
   END
 }
+#endif
 
 __global__ void bmma_b1_8_8_128_xor(void *data) {
+#if defined(ENABLE_INT1)
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpXOR>((int *)data);
+#endif
 }
 
 __global__ void bmma_b1_16_8_256_xor(void *data) {
+#if defined(ENABLE_INT1)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpXOR>((int *)data);
+#endif
 }
 
 __global__ void bmma_b1_8_8_128_and(void *data) {
+#if defined(ENABLE_INT1)
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpAND>((int *)data);
+#endif
 }
 
 __global__ void bmma_b1_16_8_256_and(void *data) {
+#if defined(ENABLE_INT1)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpAND>((int *)data);
+#endif
 }
 
 __global__ void mma_s4_8_8_32(void *data) {
+#if defined(ENABLE_INT4)
   mma_kernel_ptx<experimental::precision::s4, int, 8, 8, 32>((int *)data);
+#endif
 }
 
 __global__ void mma_s8_16_16_16(void *data) {
+#if defined(ENABLE_INT8)
   mma_kernel<signed char, int, 16, 16, 16>((int *)data);
+#endif
 }
 
 __global__ void mma_f16_16_16_16(void *data) {
@@ -193,11 +220,15 @@ __global__ void mma_f16_16_16_16(void *data) {
 }
 
 __global__ void mma_bf16_16_16_16(void *data) {
+#if defined(ENABLE_BF16)
   mma_kernel<__nv_bfloat16, float, 16, 16, 16>((float *)data);
+#endif
 }
 
 __global__ void mma_tf32_16_16_8(void *data) {
+#if defined(ENABLE_TF32)
   mma_kernel<precision::tf32, float, 16, 16, 8>((float *)data);
+#endif
 }
 
 __global__ void mma_e4m3_16_8_32(void *data) {
