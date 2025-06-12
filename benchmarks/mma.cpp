@@ -100,10 +100,14 @@ int main(int argc, const char *argv[]) {
 #endif
     benchmark.run(reinterpret_cast<void *>(&mma_f16_16_16_16), grid, block,
                   "mma_f16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
+#if defined(!__HIP_PLATFORM_AMD__)
     if (!benchmark.isVolta()) {
+#endif
       benchmark.run(reinterpret_cast<void *>(&mma_bf16_16_16_16), grid, block,
                     "mma_bf16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
+#if defined(!__HIP_PLATFORM_AMD__)
     }
+#endif
 #if defined(__HIP_PLATFORM_AMD__)
     // F32 is only available on CDNA
     if (benchmark.isCDNA()) {
