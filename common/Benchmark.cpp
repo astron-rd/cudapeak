@@ -184,6 +184,11 @@ bool Benchmark::isVolta() {
   return (arch.find("sm_70") != std::string::npos);
 }
 
+bool Benchmark::isTuring() {
+  const std::string arch(device_->getArch());
+  return (arch.find("sm_75") != std::string::npos);
+}
+
 bool Benchmark::isAda() {
   const std::string arch(device_->getArch());
   return (arch.find("sm_89") != std::string::npos);

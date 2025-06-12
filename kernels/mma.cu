@@ -139,13 +139,13 @@ __device__ void mma_kernel(Tout *data) {
 
 #if defined(__CUDA_SUBBYTE_IMMA__)
 #define ENABLE_INT1
-#define ENABLE_INT4
 #include "mma_m16n8k256_s32b1b1s32.cuh"
-#include "mma_m8n8k32_s32s4s4s32.cuh"
 #endif
 
-#if __CUDA_ARCH >= 750
+#if __CUDA_ARCH__ >= 750
+#define ENABLE_INT4
 #define ENABLE_INT8
+#include "mma_m8n8k32_s32s4s4s32.cuh"
 #endif
 
 #if __CUDA_ARCH >= 800

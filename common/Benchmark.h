@@ -29,6 +29,7 @@ public:
   bool isRDNA3();
 #else
   bool isVolta();
+  bool isTuring();
   bool isAda();
   bool isHopper();
   bool isBlackwell();
