@@ -1,3 +1,10 @@
+inline __device__ unsigned laneid() {
+  unsigned laneid;
+
+  asm("mov.u32 %0, %%laneid;" : "=r"(laneid));
+  return laneid;
+}
+
 template <>
 class fragment<matrix_a, 16, 8, 32, __nv_fp8_e4m3, row_major>
     : public __frag_base<int, 4> {};
