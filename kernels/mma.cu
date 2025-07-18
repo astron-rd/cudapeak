@@ -153,7 +153,7 @@ __device__ void mma_kernel(Tout *data) {
 #define ENABLE_BF16
 #endif
 
-#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 120
+#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 1200
 #define ENABLE_FP8
 #include "mma_m16n8k32_f32f8f8f32.cuh"
 #endif
