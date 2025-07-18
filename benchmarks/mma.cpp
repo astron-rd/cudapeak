@@ -75,17 +75,20 @@ int main(int argc, const char *argv[]) {
                     "mma_xf32_16_16_8", gops * (16 * 16 * 8 * 2), gbytes);
     }
 #else
-    if (!benchmark.isVolta() && !benchmark.isTuring()) {
-      benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_xor), grid,
-                    block, "bmma_b1_16_8_256_xor", gops * (16 * 8 * 256 * 2),
-                    gbytes);
-      benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_and), grid,
-                    block, "bmma_b1_16_8_256_and", gops * (16 * 8 * 256 * 2),
-                    gbytes);
+    if (!benchmark.isVolta()) {
+      if (!benchmark.isTuring()) {
+        benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_and), grid,
+                      block, "bmma_b1_16_8_256_and", gops * (16 * 8 * 256 * 2),
+                      gbytes);
+        benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_xor), grid,
+                      block, "bmma_b1_16_8_256_xor", gops * (16 * 8 * 256 * 2),
+                      gbytes);
+        benchmark.run(reinterpret_cast<void *>(&bmma_b1_8_8_128_and), grid,
+                      block, "bmma_b1_8_8_128_and", gops * (8 * 8 * 128 * 2),
+                      gbytes);
+      }
       benchmark.run(reinterpret_cast<void *>(&bmma_b1_8_8_128_xor), grid, block,
                     "bmma_b1_8_8_128_xor", gops * (8 * 8 * 128 * 2), gbytes);
-      benchmark.run(reinterpret_cast<void *>(&bmma_b1_8_8_128_and), grid, block,
-                    "bmma_b1_8_8_128_and", gops * (8 * 8 * 128 * 2), gbytes);
     }
     if (!benchmark.isVolta()) {
       benchmark.run(reinterpret_cast<void *>(&mma_s4_8_8_32), grid, block,

@@ -112,7 +112,8 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
 
   // Print CUDA device information
   std::cout << "Device " << device_number << ": " << device_->getName();
-  std::cout << " (" << multiProcessorCount();
+  std::cout << " (" << device_->getArch() << ", " << multiProcessorCount()
+            << " ";
 #if defined(__HIP_PLATFORM_AMD__)
   if (isCDNA()) {
     std::cout << "CUs, ";

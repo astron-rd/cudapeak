@@ -2,13 +2,6 @@
 
 using namespace nvcuda::wmma;
 
-inline __device__ unsigned laneid() {
-  unsigned laneid;
-
-  asm("mov.u32 %0, %%laneid;" : "=r"(laneid));
-  return laneid;
-}
-
 template <>
 class fragment<matrix_a, 16, 8, 256, experimental::precision::b1, row_major>
     : public __frag_base<experimental::precision::b1, 32, 4> {};

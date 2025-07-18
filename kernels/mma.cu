@@ -27,6 +27,13 @@ using namespace nvcuda::wmma;
 
 #define REPEAT_COUNT 32768
 
+inline __device__ unsigned laneid() {
+  unsigned laneid;
+
+  asm("mov.u32 %0, %%laneid;" : "=r"(laneid));
+  return laneid;
+}
+
 #if defined(__HIP_PLATFORM_AMD__)
 
 #if defined(ROCWMMA_VERSION_MAJOR)
@@ -137,8 +144,12 @@ __device__ void mma_kernel(Tout *data) {
   END
 }
 
-#if defined(__CUDA_SUBBYTE_IMMA__)
+// Turing only supports int1, xor, m8n8k128
+#if __CUDA_ARCH__ >= 750
 #define ENABLE_INT1
+#endif
+
+#if __CUDA_ARCH__ >= 800
 #include "mma_m16n8k256_s32b1b1s32.cuh"
 #endif
 
@@ -148,12 +159,12 @@ __device__ void mma_kernel(Tout *data) {
 #include "mma_m8n8k32_s32s4s4s32.cuh"
 #endif
 
-#if __CUDA_ARCH >= 800
+#if __CUDA_ARCH__ >= 800
 #define ENABLE_TF32
 #define ENABLE_BF16
 #endif
 
-#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 120
+#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 1200
 #define ENABLE_FP8
 #include "mma_m16n8k32_f32f8f8f32.cuh"
 #endif
@@ -183,21 +194,21 @@ __global__ void bmma_b1_8_8_128_xor(void *data) {
 }
 
 __global__ void bmma_b1_16_8_256_xor(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpXOR>((int *)data);
 #endif
 }
 
 __global__ void bmma_b1_8_8_128_and(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpAND>((int *)data);
 #endif
 }
 
 __global__ void bmma_b1_16_8_256_and(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpAND>((int *)data);
 #endif
