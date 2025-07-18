@@ -144,8 +144,12 @@ __device__ void mma_kernel(Tout *data) {
   END
 }
 
-#if __CUDA_ARCH__ >= 800
+// Turing only supports int1, xor, m8n8k128
+#if __CUDA_ARCH__ >= 750
 #define ENABLE_INT1
+#endif
+
+#if __CUDA_ARCH__ >= 800
 #include "mma_m16n8k256_s32b1b1s32.cuh"
 #endif
 
@@ -190,21 +194,21 @@ __global__ void bmma_b1_8_8_128_xor(void *data) {
 }
 
 __global__ void bmma_b1_16_8_256_xor(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpXOR>((int *)data);
 #endif
 }
 
 __global__ void bmma_b1_8_8_128_and(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 8, 8, 128,
               experimental::bmmaBitOpAND>((int *)data);
 #endif
 }
 
 __global__ void bmma_b1_16_8_256_and(void *data) {
-#if defined(ENABLE_INT1)
+#if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
   bmma_kernel<experimental::precision::b1, int, 16, 8, 256,
               experimental::bmmaBitOpAND>((int *)data);
 #endif
