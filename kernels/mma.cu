@@ -144,7 +144,7 @@ __device__ void mma_kernel(Tout *data) {
   END
 }
 
-#if defined(__CUDA_SUBBYTE_IMMA__)
+#if __CUDA_ARCH__ >= 800
 #define ENABLE_INT1
 #include "mma_m16n8k256_s32b1b1s32.cuh"
 #endif
