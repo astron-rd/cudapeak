@@ -155,7 +155,7 @@ __device__ void mma_kernel(Tout *data) {
 #include "mma_m8n8k32_s32s4s4s32.cuh"
 #endif
 
-#if __CUDA_ARCH >= 800
+#if __CUDA_ARCH__ >= 800
 #define ENABLE_TF32
 #define ENABLE_BF16
 #endif
