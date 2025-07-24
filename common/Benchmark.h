@@ -5,6 +5,7 @@
 #include <string>
 
 #include <cudawrappers/cu.hpp>
+#include <cudawrappers/nvrtc.hpp>
 
 #if defined(HAVE_PMT)
 #include <pmt.h>
@@ -36,9 +37,14 @@ public:
 #endif
 
   void allocate(size_t bytes);
-  void run(void *kernel, dim3 grid, dim3 block, const char *name,
-           double gops = 0, double gbytes = 0);
-  void report(std::string name, double gops, double gbytes, Measurement &m);
+  void setArgs(std::vector<const void *> args);
+  void run(std::shared_ptr<cu::Function> function, dim3 grid, dim3 block,
+           const std::string &name, double gops = 0, double gbytes = 0);
+  void report(const std::string &name, double gops, double gbytes,
+              Measurement &m);
+
+  std::shared_ptr<cu::Function> compileKernel(const std::string &kernel_source,
+                                              const std::string &kernel_name);
 
   int multiProcessorCount();
   int clockRate();
@@ -66,11 +72,10 @@ public:
 protected:
   double measure_power();
   double measure_frequency();
-  float run_kernel(void *kernel, dim3 grid, dim3 block, int n = 1);
-  Measurement measure_kernel(void *kernel, dim3 grid, dim3 block);
-  virtual void launch_kernel(void *kernel, dim3 grid, dim3 block,
-                             cu::Stream &stream,
-                             const std::vector<const void *> &args);
+  float run_function(std::shared_ptr<cu::Function> function, dim3 grid,
+                     dim3 block, int n = 1);
+  Measurement measure_function(std::shared_ptr<cu::Function> function,
+                               dim3 grid, dim3 block);
 
   std::vector<const void *> args_;
   unsigned nr_benchmarks_;
@@ -90,6 +95,9 @@ protected:
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
   unsigned benchmark_duration_;
 #endif
+
+  std::unique_ptr<cu::Module> module_;
+  std::unique_ptr<nvrtc::Program> program_;
 };
 
 #endif // end BENCHMARK_H

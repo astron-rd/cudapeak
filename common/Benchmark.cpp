@@ -3,6 +3,8 @@
 #include <string>
 #include <thread>
 
+#include <cudawrappers/cu.hpp>
+#include <cudawrappers/nvrtc.hpp>
 #include <cxxopts.hpp>
 
 #include "Benchmark.h"
@@ -74,7 +76,7 @@ cxxopts::ParseResult getCommandLineOptions(int argc, const char *argv[]) {
 
 } // end namespace
 
-void Benchmark::report(std::string name, double gops, double gbytes,
+void Benchmark::report(const std::string &name, double gops, double gbytes,
                        Measurement &m) {
   const double milliseconds = m.runtime;
   const double seconds = milliseconds * 1e-3;
@@ -218,12 +220,15 @@ void Benchmark::allocate(size_t bytes) {
   stream_->memcpyHtoDAsync(*d_data_, h_data, bytes);
   stream_->synchronize();
   args_.resize(1);
-  args_[0] = reinterpret_cast<const void *>(static_cast<CUdeviceptr>(*d_data_));
+  args_[0] = d_data_->parameter();
 }
 
-void Benchmark::run(void *kernel, dim3 grid, dim3 block, const char *name,
-                    double gops, double gbytes) {
-  Measurement m = measure_kernel(kernel, grid, block);
+void Benchmark::setArgs(std::vector<const void *> args) { args_ = args; }
+
+void Benchmark::run(std::shared_ptr<cu::Function> function, dim3 grid,
+                    dim3 block, const std::string &name, double gops,
+                    double gbytes) {
+  Measurement m = measure_function(function, grid, block);
   report(name, gops, gbytes, m);
 }
 
@@ -242,12 +247,14 @@ int Benchmark::maxThreadsPerBlock() {
 
 size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }
 
-float Benchmark::run_kernel(void *kernel, dim3 grid, dim3 block, int n) {
+float Benchmark::run_function(std::shared_ptr<cu::Function> function, dim3 grid,
+                              dim3 block, int n) {
   cu::Event start;
   cu::Event end;
   stream_->record(start);
   for (int i = 0; i < n; i++) {
-    launch_kernel(kernel, grid, block, *stream_, args_);
+    stream_->launchKernel(*function, grid.x, grid.y, grid.z, block.x, block.y,
+                          block.z, 0, args_);
   }
   stream_->record(end);
   end.synchronize();
@@ -288,7 +295,8 @@ double Benchmark::measure_frequency() {
   return 0;
 }
 
-Measurement Benchmark::measure_kernel(void *kernel, dim3 grid, dim3 block) {
+Measurement Benchmark::measure_function(std::shared_ptr<cu::Function> function,
+                                        dim3 grid, dim3 block) {
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
   if (measureContinuous()) {
     Measurement m;
@@ -321,10 +329,45 @@ Measurement Benchmark::measure_kernel(void *kernel, dim3 grid, dim3 block) {
 #endif
 
   // Benchmark (timing only)
-  const float milliseconds = run_kernel(kernel, grid, block, nrIterations());
+  const float milliseconds =
+      run_function(function, grid, block, nrIterations());
   Measurement m;
   m.runtime = milliseconds / nrIterations();
   m.power = 0;
   m.frequency = 0;
   return m;
+}
+
+std::shared_ptr<cu::Function>
+Benchmark::compileKernel(const std::string &kernel_source,
+                         const std::string &kernel_name) {
+  if (!module_) {
+    const std::string cuda_include_path = nvrtc::findIncludePath();
+
+    const std::string arch = device_->getArch();
+
+    std::vector<std::string> options = {
+#if defined(__HIP__)
+        "--offload-arch=" + arch,
+#else
+        "-arch=" + arch,
+#endif
+    };
+
+    program_ = std::make_unique<nvrtc::Program>(kernel_source, "");
+    program_->addNameExpression(kernel_name);
+
+    try {
+      program_->compile(options);
+    } catch (nvrtc::Error &error) {
+      std::cerr << program_->getLog();
+      throw;
+    }
+
+    module_ = std::make_unique<cu::Module>(
+        static_cast<const void *>(program_->getPTX().data()));
+  }
+
+  return std::make_shared<cu::Function>(*module_,
+                                        program_->getLoweredName(kernel_name));
 }
