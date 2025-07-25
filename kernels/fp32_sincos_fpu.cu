@@ -4,9 +4,16 @@
 template <int nr_fma, int nr_sincos>
 __device__ void __fp32_sincos_fpu_1_1(float2 &a, float2 &b, float2 &c) {
   for (int i = 0; i < nr_fma; i++) {
+#if defined(__HIP_PLATFORM_AMD__)
+    a.x += b.x * c.x;
+    a.x += -b.y * c.y;
+    a.y += b.x * c.y;
+    a.y += b.y * c.x;
+#else
     asm("fma.rn.f32 %0, %1, %2, %3;"
         : "=f"(a.x)
         : "f"(b.x), "f"(c.x), "f"(a.x));
+#endif
   }
   for (int i = 0; i < nr_sincos; i++) {
     b.x = sinf(a.x);
