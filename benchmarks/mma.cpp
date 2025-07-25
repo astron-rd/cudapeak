@@ -22,8 +22,11 @@ int getBitSize(const std::string &kernel_name) {
   const std::string type = split(kernel_name, '_')[1];
 
   // Handle special cases first
-  if (type == "e4m3" || type == "e5m2")
+  if (type == "e4m3" || type == "e5m2") {
     return 8;
+  } else if (type == "e2m1") {
+    return 4;
+  }
 
   // Default case: try to extract number from type (e.g., "16" from "f16")
   for (char c : type) {
@@ -98,6 +101,10 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
   if (benchmark.isAda() || benchmark.isHopper() || benchmark.isBlackwell()) {
     kernel_names.push_back("mma_e4m3_16_8_32");
     kernel_names.push_back("mma_e5m2_16_8_32");
+
+    if (!benchmark.isAda()) {
+      kernel_names.push_back("mma_e2m1_16_8_64");
+    }
   }
 #endif
 
