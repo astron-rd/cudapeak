@@ -16,9 +16,9 @@ jobs:
           - name: AMD W7700
             partition: defq
             gres: gpu:W7700
-      env:
-        DEVICE_NAME: ${{ matrix.name }}
-        PARTITION_NAME: ${{ matrix.partition }}
+    env:
+      DEVICE_NAME: ${{ matrix.name }}
+      PARTITION_NAME: ${{ matrix.partition }}
     steps:
       - uses: actions/checkout@v4
       - uses: astron-rd/slurm-action@v1
