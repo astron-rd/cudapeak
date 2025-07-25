@@ -2,8 +2,6 @@
 
 #include "kernels/int32.cu.o.h"
 
-__global__ void int32_kernel(int *ptr);
-
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
   KernelFactory kernel_factory(int32_source);

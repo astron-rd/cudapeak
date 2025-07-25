@@ -23,6 +23,7 @@ int main(int argc, const char *argv[]) {
   dim3 grid(multiProcessorCount);
   dim3 block(maxThreadsPerBlock);
 
+  // Allocate memory
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
   // Run benchmark
