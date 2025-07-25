@@ -22,6 +22,7 @@ KernelFactory::compileKernels(cu::Device &device,
   std::vector<std::string> options = {
       "-I" + cuda_include_path,
 #if defined(__HIP__)
+      "-std=c++17",
       "--offload-arch=" + arch,
 #else
       "-arch=" + arch,
