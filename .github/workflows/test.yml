@@ -37,11 +37,13 @@ jobs:
             if [[ "${{ matrix.name }}" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
+              append_path=""
             else
               cmake_flags="-DBUILD_WITH_HIP=1"
+              append_path="/opt/rocm/bin"
             fi
 
-            cmake -S . -B ${BUILD_DIR} ${cmake_flags}
+            PATH=$PATH:${append_path} cmake -S . -B ${BUILD_DIR} ${cmake_flags}
             make -C ${BUILD_DIR} -j
             ${BUILD_DIR}/benchmarks/benchmark-fp32
             ${BUILD_DIR}/benchmarks/benchmark-mma
