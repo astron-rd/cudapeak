@@ -15,7 +15,7 @@ jobs:
       - run: cmake -S . -B build
       - run: make -C build -j
   build-rocm:
-    name: ${{ matrix.ROCM_IMAGE }}
+    name: ROCm ${{ matrix.ROCM_IMAGE }}
     runs-on: [docker]
     strategy:
       matrix:
