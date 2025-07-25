@@ -1,19 +1,51 @@
 #include "common/common.h"
 
-__global__ void fp32_sincos_fpu_1_8(float *ptr);
-__global__ void fp32_sincos_fpu_1_4(float *ptr);
-__global__ void fp32_sincos_fpu_1_2(float *ptr);
-__global__ void fp32_sincos_fpu_1_1(float *ptr);
-__global__ void fp32_sincos_fpu_2_1(float *ptr);
-__global__ void fp32_sincos_fpu_4_1(float *ptr);
-__global__ void fp32_sincos_fpu_8_1(float *ptr);
-__global__ void fp32_sincos_fpu_16_1(float *ptr);
-__global__ void fp32_sincos_fpu_32_1(float *ptr);
-__global__ void fp32_sincos_fpu_64_1(float *ptr);
-__global__ void fp32_sincos_fpu_128_1(float *ptr);
+#include "kernels/fp32_sincos_fpu.cu.o.h"
+
+std::vector<std::string> split(const std::string &s, char delimiter) {
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+  while (std::getline(tokenStream, token, delimiter)) {
+    tokens.push_back(token);
+  }
+  return tokens;
+}
+
+std::vector<std::string>
+transform(const std::vector<std::string> &kernel_names) {
+  std::vector<std::string> result;
+
+  for (const auto &name : kernel_names) {
+    auto parts = split(name, '_');
+    if (parts.size() < 5) {
+      continue;
+    }
+
+    std::ostringstream oss;
+    oss << "fma:" << parts[1] << " (" << parts[2] << ") -> " << std::setw(4)
+        << parts[3] << ":" << parts[4];
+
+    result.push_back(oss.str());
+  }
+
+  return result;
+}
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
+
+  KernelFactory kernel_factory(fp32_sincos_fpu_source);
+
+  const std::vector<std::string> kernel_names{
+      "fp32_sincos_fpu_1_8",  "fp32_sincos_fpu_1_4",  "fp32_sincos_fpu_1_2",
+      "fp32_sincos_fpu_1_1",  "fp32_sincos_fpu_2_1",  "fp32_sincos_fpu_4_1",
+      "fp32_sincos_fpu_8_1",  "fp32_sincos_fpu_16_1", "fp32_sincos_fpu_32_1",
+      "fp32_sincos_fpu_64_1", "fp32_sincos_fpu_128_1"};
+
+  auto kernels =
+      kernel_factory.compileKernels(benchmark.getDevice(), kernel_names);
+  const std::vector<std::string> names = transform(kernel_names);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -35,28 +67,9 @@ int main(int argc, const char *argv[]) {
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_1_8), grid, block,
-                  "fma:sincos (fpu) ->    1:8", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_1_4), grid, block,
-                  "fma:sincos (fpu) ->    1:4", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_1_2), grid, block,
-                  "fma:sincos (fpu) ->    1:2", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_1_1), grid, block,
-                  "fma:sincos (fpu) ->    1:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_2_1), grid, block,
-                  "fma:sincos (fpu) ->    2:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_4_1), grid, block,
-                  "fma:sincos (fpu) ->    4:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_8_1), grid, block,
-                  "fma:sincos (fpu) ->    8:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_16_1), grid, block,
-                  "fma:sincos (fpu) ->   16:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_32_1), grid, block,
-                  "fma:sincos (fpu) ->   32:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_64_1), grid, block,
-                  "fma:sincos (fpu) ->   64:1", gops, gbytes);
-    benchmark.run(reinterpret_cast<void *>(&fp32_sincos_fpu_128_1), grid, block,
-                  "fma:sincos (fpu) ->  128:1", gops, gbytes);
+    for (int j = 0; j < kernels.size(); j++) {
+      benchmark.run(kernels[j], grid, block, names[j], gops, gbytes);
+    }
   }
 
   return EXIT_SUCCESS;
