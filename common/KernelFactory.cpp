@@ -17,7 +17,11 @@ std::vector<std::shared_ptr<cu::Function>>
 KernelFactory::compileKernels(cu::Device &device,
                               const std::vector<std::string> &kernel_names) {
   const std::string cuda_include_path = nvrtc::findIncludePath();
-  const std::string arch = device.getArch();
+  std::string arch = device.getArch();
+
+  if (arch.compare("sm_120") == 0) {
+    arch += "a";
+  }
 
   std::vector<std::string> options = {
       "-I" + cuda_include_path,
