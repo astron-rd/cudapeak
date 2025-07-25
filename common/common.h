@@ -4,6 +4,7 @@
 #include <string>
 
 #include "Benchmark.h"
+#include "KernelFactory.h"
 #include "Measurement.h"
 
 static constexpr int w1 = 20;

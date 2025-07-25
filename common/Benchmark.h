@@ -5,7 +5,6 @@
 #include <string>
 
 #include <cudawrappers/cu.hpp>
-#include <cudawrappers/nvrtc.hpp>
 
 #if defined(HAVE_PMT)
 #include <pmt.h>
@@ -36,18 +35,14 @@ public:
   bool isBlackwell();
 #endif
 
+  cu::Device &getDevice() { return *device_; }
+
   void allocate(size_t bytes);
   void setArgs(std::vector<const void *> args);
   void run(std::shared_ptr<cu::Function> function, dim3 grid, dim3 block,
            const std::string &name, double gops = 0, double gbytes = 0);
   void report(const std::string &name, double gops, double gbytes,
               Measurement &m);
-
-  std::shared_ptr<cu::Function> compileKernel(const std::string &kernel_source,
-                                              const std::string &kernel_name);
-  std::vector<std::shared_ptr<cu::Function>>
-  compileKernels(const std::string &kernel_source,
-                 const std::vector<std::string> &kernel_name);
 
   int multiProcessorCount();
   int clockRate();
@@ -98,9 +93,6 @@ protected:
 #if defined(HAVE_PMT) || defined(HAVE_FMT)
   unsigned benchmark_duration_;
 #endif
-
-  std::unique_ptr<cu::Module> module_;
-  std::unique_ptr<nvrtc::Program> program_;
 };
 
 #endif // end BENCHMARK_H

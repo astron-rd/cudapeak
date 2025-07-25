@@ -1,4 +1,5 @@
-add_library(common OBJECT Benchmark.cpp common.cpp Measurement.cpp)
+add_library(common OBJECT Benchmark.cpp common.cpp KernelFactory.cpp
+                          Measurement.cpp)
 target_link_libraries(common PUBLIC cxxopts cudawrappers::cu)
 if(BUILD_WITH_PMT)
   target_link_libraries(common pmt)

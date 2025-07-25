@@ -4,6 +4,9 @@
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
+  KernelFactory kernel_factory(fp16_source);
+  auto kernels = kernel_factory.compileKernels(
+      benchmark.getDevice(), {"fp16_kernel", "fp16x2_kernel"});
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -21,8 +24,6 @@ int main(int argc, const char *argv[]) {
   dim3 block(maxThreadsPerBlock);
 
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
-  auto kernels =
-      benchmark.compileKernels(fp16_source, {"fp16_kernel", "fp16x2_kernel"});
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {

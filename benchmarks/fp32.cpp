@@ -4,6 +4,9 @@
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
+  KernelFactory kernel_factory(fp32_source);
+  auto kernel =
+      kernel_factory.compileKernel(benchmark.getDevice(), "fp32_kernel");
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -21,7 +24,6 @@ int main(int argc, const char *argv[]) {
   dim3 block(maxThreadsPerBlock);
 
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
-  auto kernel = benchmark.compileKernel(fp32_source, "fp32_kernel");
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
