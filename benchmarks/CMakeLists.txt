@@ -1,9 +1,5 @@
 file(GLOB BENCHMARK_SOURCES *.cpp)
 
-if(BUILD_WITH_HIP)
-  set(BENCHMARK_SOURCES fp16.cpp fp32.cpp mma.cpp stream.cpp)
-endif()
-
 foreach(source_file ${BENCHMARK_SOURCES})
   get_filename_component(EXECUTABLE_NAME ${source_file} NAME_WE)
   get_filename_component(kernel_file ${EXECUTABLE_NAME}.cu NAME)
