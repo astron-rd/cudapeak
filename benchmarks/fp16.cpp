@@ -5,8 +5,12 @@
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
   KernelFactory kernel_factory(fp16_source);
-  auto kernels = kernel_factory.compileKernels(
-      benchmark.getDevice(), {"fp16_kernel", "fp16x2_kernel"});
+  std::vector<std::string> kernel_names = {"fp16_kernel"};
+#if !defined(__HIP_PLATFORM_AMD__)
+  kernel_names.push_back("fp16x2_kernel");
+#endif
+  auto kernels =
+      kernel_factory.compileKernels(benchmark.getDevice(), kernel_names);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
