@@ -1,8 +1,6 @@
-#include "kernels/fp16.h"
 #include "common/common.h"
 
-__global__ void fp16_kernel(half *ptr);
-__global__ void fp16x2_kernel(half *ptr);
+#include "kernels/fp16.cu.o.h"
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
@@ -23,14 +21,14 @@ int main(int argc, const char *argv[]) {
   dim3 block(maxThreadsPerBlock);
 
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
+  auto kernels =
+      benchmark.compileKernels(fp16_source, {"fp16_kernel", "fp16x2_kernel"});
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void *>(&fp16_kernel), grid, block, "fp16",
-                  gops, gbytes);
+    benchmark.run(kernels[0], grid, block, "fp16", gops, gbytes);
 #if !defined(__HIP_PLATFORM_AMD__)
-    benchmark.run(reinterpret_cast<void *>(&fp16x2_kernel), grid, block,
-                  "fp16x2", gops, gbytes);
+    benchmark.run(kernels[1], grid, block, "fp16x2", gops, gbytes);
 #endif
   }
 

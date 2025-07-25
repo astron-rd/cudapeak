@@ -338,36 +338,46 @@ Measurement Benchmark::measure_function(std::shared_ptr<cu::Function> function,
   return m;
 }
 
+std::vector<std::shared_ptr<cu::Function>>
+Benchmark::compileKernels(const std::string &kernel_source,
+                          const std::vector<std::string> &kernel_names) {
+  const std::string cuda_include_path = nvrtc::findIncludePath();
+  const std::string arch = device_->getArch();
+
+  std::vector<std::string> options = {
+      "-I" + cuda_include_path,
+#if defined(__HIP__)
+      "--offload-arch=" + arch,
+#else
+      "-arch=" + arch,
+#endif
+  };
+
+  program_ = std::make_unique<nvrtc::Program>(kernel_source, "");
+  for (const auto &kernel_name : kernel_names) {
+    program_->addNameExpression(kernel_name);
+  }
+  try {
+    program_->compile(options);
+  } catch (nvrtc::Error &error) {
+    std::cerr << program_->getLog();
+    throw;
+  }
+
+  module_ = std::make_unique<cu::Module>(
+      static_cast<const void *>(program_->getPTX().data()));
+
+  std::vector<std::shared_ptr<cu::Function>> functions;
+  for (auto kernel_name : kernel_names) {
+    functions.push_back(std::make_shared<cu::Function>(
+        *module_, program_->getLoweredName(kernel_name)));
+  }
+
+  return functions;
+}
+
 std::shared_ptr<cu::Function>
 Benchmark::compileKernel(const std::string &kernel_source,
                          const std::string &kernel_name) {
-  if (!module_) {
-    const std::string cuda_include_path = nvrtc::findIncludePath();
-
-    const std::string arch = device_->getArch();
-
-    std::vector<std::string> options = {
-#if defined(__HIP__)
-        "--offload-arch=" + arch,
-#else
-        "-arch=" + arch,
-#endif
-    };
-
-    program_ = std::make_unique<nvrtc::Program>(kernel_source, "");
-    program_->addNameExpression(kernel_name);
-
-    try {
-      program_->compile(options);
-    } catch (nvrtc::Error &error) {
-      std::cerr << program_->getLog();
-      throw;
-    }
-
-    module_ = std::make_unique<cu::Module>(
-        static_cast<const void *>(program_->getPTX().data()));
-  }
-
-  return std::make_shared<cu::Function>(*module_,
-                                        program_->getLoweredName(kernel_name));
+  return compileKernels(kernel_source, {kernel_name}).front();
 }

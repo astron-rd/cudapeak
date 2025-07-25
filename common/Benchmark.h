@@ -45,6 +45,9 @@ public:
 
   std::shared_ptr<cu::Function> compileKernel(const std::string &kernel_source,
                                               const std::string &kernel_name);
+  std::vector<std::shared_ptr<cu::Function>>
+  compileKernels(const std::string &kernel_source,
+                 const std::vector<std::string> &kernel_name);
 
   int multiProcessorCount();
   int clockRate();
