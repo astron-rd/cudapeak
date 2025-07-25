@@ -25,15 +25,12 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-
             if [[ "${{ matrix.partition }}" == cbtq ]]; then
               module load spack/d4468dcc
             else
               module load spack/20250403
             fi
-
             DEVICE_NAME="${{ matrix.name }}"
-
             if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
@@ -42,9 +39,7 @@ jobs:
               cmake_flags="-DBUILD_WITH_HIP=1"
               append_path="/opt/rocm/bin"
             fi
-
             module load cmake
-
             PATH=$PATH:${append_path} cmake -S . -B ${BUILD_DIR} ${cmake_flags}
             make -C ${BUILD_DIR} -j
             ${BUILD_DIR}/benchmarks/benchmark-fp32
