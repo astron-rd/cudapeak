@@ -1,7 +1,7 @@
 file(GLOB BENCHMARK_SOURCES *.cpp)
 
 if(BUILD_WITH_HIP)
-  set(BENCHMARK_SOURCES fp16.cpp fp32.cpp mma.cpp stream.cu)
+  set(BENCHMARK_SOURCES fp16.cpp fp32.cpp mma.cpp stream.cpp)
 endif()
 
 foreach(source_file ${BENCHMARK_SOURCES})
