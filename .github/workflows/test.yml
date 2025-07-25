@@ -29,6 +29,7 @@ jobs:
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             source /etc/profile
             module load spack/20250403
+            module load cmake
 
             if [[ "${{ matrix.name }}" == NVIDIA* ]]; then
               module load cuda
