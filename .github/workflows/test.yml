@@ -25,7 +25,8 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            if [[ "${{ matrix.partition }}" == cbtq ]]; then
+            PARTITION_NAME="${{ matrix.partition }}"
+            if [[ "$PARTITION_NAME" == cbtq ]]; then
               module load spack/d4468dcc
             else
               module load spack/20250403
