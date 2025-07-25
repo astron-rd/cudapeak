@@ -29,6 +29,7 @@ jobs:
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             if [[ "$PARTITION_NAME" == cbtq ]]; then
+              source /etc/profile.d/modules.sh
               module load spack/d4468dcc
             else
               module load spack/20250403
