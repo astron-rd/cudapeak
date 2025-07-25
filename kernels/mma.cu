@@ -18,7 +18,6 @@ struct hip_fp8_e5m2;
 #endif
 
 #else
-#include <cuda.h>
 #include <cuda_fp8.h>
 #include <mma.h>
 
