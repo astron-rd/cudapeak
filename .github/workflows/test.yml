@@ -16,6 +16,9 @@ jobs:
           - name: AMD W7700
             partition: defq
             gres: gpu:W7700
+      env:
+        DEVICE_NAME: ${{ matrix.name }}
+        PARTITION_NAME: ${{ matrix.partition }}
     steps:
       - uses: actions/checkout@v4
       - uses: astron-rd/slurm-action@v1
@@ -25,13 +28,11 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            PARTITION_NAME="${{ matrix.partition }}"
             if [[ "$PARTITION_NAME" == cbtq ]]; then
               module load spack/d4468dcc
             else
               module load spack/20250403
             fi
-            DEVICE_NAME="${{ matrix.name }}"
             if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
