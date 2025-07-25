@@ -5,10 +5,7 @@ template <int nr_int32> __device__ void int32_8(int2 &a, int2 &b, int2 &c) {
 // Perform nr_int32 * 4 imad
 #if defined(__HIP_PLATFORM_AMD__)
   for (int i = 0; i < nr_int32; i++) {
-    a.x += b.x * c.x;
-    a.x += -b.y * c.y;
-    a.y += b.x * c.y;
-    a.y += b.y * c.x;
+    __asm__ __volatile__("v_mad_i32_i24 v0, v1, v2, v0\n" ::: "v0", "v1", "v2");
   }
 #else
 #pragma unroll nr_int32
