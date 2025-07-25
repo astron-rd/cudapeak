@@ -32,9 +32,9 @@ jobs:
               module load spack/20250403
             fi
 
-            module load cmake
+            DEVICE_NAME="${{ matrix.name }}"
 
-            if [[ "${{ matrix.name }}" == NVIDIA* ]]; then
+            if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
               append_path=""
@@ -42,6 +42,8 @@ jobs:
               cmake_flags="-DBUILD_WITH_HIP=1"
               append_path="/opt/rocm/bin"
             fi
+
+            module load cmake
 
             PATH=$PATH:${append_path} cmake -S . -B ${BUILD_DIR} ${cmake_flags}
             make -C ${BUILD_DIR} -j
