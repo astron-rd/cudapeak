@@ -1,9 +1,12 @@
 #include "common/common.h"
 
-__global__ void fp32_kernel(float *ptr);
+#include "kernels/fp32.cu.o.h"
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
+  KernelFactory kernel_factory(fp32_source);
+  auto kernel =
+      kernel_factory.compileKernel(benchmark.getDevice(), "fp32_kernel");
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -20,12 +23,12 @@ int main(int argc, const char *argv[]) {
   dim3 grid(multiProcessorCount);
   dim3 block(maxThreadsPerBlock);
 
+  // Allocate memory
   benchmark.allocate(multiProcessorCount * maxThreadsPerBlock * sizeof(float));
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void *>(&fp32_kernel), grid, block, "fp32",
-                  gops, gbytes);
+    benchmark.run(kernel, grid, block, "fp32", gops, gbytes);
   }
 
   return EXIT_SUCCESS;

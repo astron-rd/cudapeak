@@ -1,7 +1,3 @@
-#if defined(__HIP_PLATFORM_AMD__)
-#include <hip/hip_runtime.h>
-#endif
-
 #define nr_outer 4096
 #define nr_inner 1024
 

@@ -1,11 +1,16 @@
-#include "kernels/fp16.h"
 #include "common/common.h"
 
-__global__ void fp16_kernel(half *ptr);
-__global__ void fp16x2_kernel(half *ptr);
+#include "kernels/fp16.cu.o.h"
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
+  KernelFactory kernel_factory(fp16_source);
+  std::vector<std::string> kernel_names = {"fp16_kernel"};
+#if !defined(__HIP_PLATFORM_AMD__)
+  kernel_names.push_back("fp16x2_kernel");
+#endif
+  auto kernels =
+      kernel_factory.compileKernels(benchmark.getDevice(), kernel_names);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -26,11 +31,9 @@ int main(int argc, const char *argv[]) {
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-    benchmark.run(reinterpret_cast<void *>(&fp16_kernel), grid, block, "fp16",
-                  gops, gbytes);
+    benchmark.run(kernels[0], grid, block, "fp16", gops, gbytes);
 #if !defined(__HIP_PLATFORM_AMD__)
-    benchmark.run(reinterpret_cast<void *>(&fp16x2_kernel), grid, block,
-                  "fp16x2", gops, gbytes);
+    benchmark.run(kernels[1], grid, block, "fp16x2", gops, gbytes);
 #endif
   }
 

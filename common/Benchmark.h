@@ -35,10 +35,14 @@ public:
   bool isBlackwell();
 #endif
 
+  cu::Device &getDevice() { return *device_; }
+
   void allocate(size_t bytes);
-  void run(void *kernel, dim3 grid, dim3 block, const char *name,
-           double gops = 0, double gbytes = 0);
-  void report(std::string name, double gops, double gbytes, Measurement &m);
+  void setArgs(std::vector<const void *> args);
+  void run(std::shared_ptr<cu::Function> function, dim3 grid, dim3 block,
+           const std::string &name, double gops = 0, double gbytes = 0);
+  void report(const std::string &name, double gops, double gbytes,
+              Measurement &m);
 
   int multiProcessorCount();
   int clockRate();
@@ -66,11 +70,10 @@ public:
 protected:
   double measure_power();
   double measure_frequency();
-  float run_kernel(void *kernel, dim3 grid, dim3 block, int n = 1);
-  Measurement measure_kernel(void *kernel, dim3 grid, dim3 block);
-  virtual void launch_kernel(void *kernel, dim3 grid, dim3 block,
-                             cu::Stream &stream,
-                             const std::vector<const void *> &args);
+  float run_function(std::shared_ptr<cu::Function> function, dim3 grid,
+                     dim3 block, int n = 1);
+  Measurement measure_function(std::shared_ptr<cu::Function> function,
+                               dim3 grid, dim3 block);
 
   std::vector<const void *> args_;
   unsigned nr_benchmarks_;

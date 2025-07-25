@@ -1,4 +1,5 @@
-add_library(common OBJECT Benchmark.cpp common.cpp Measurement.cpp)
+add_library(common OBJECT Benchmark.cpp common.cpp KernelFactory.cpp
+                          Measurement.cpp)
 target_link_libraries(common PUBLIC cxxopts cudawrappers::cu)
 if(BUILD_WITH_PMT)
   target_link_libraries(common pmt)
@@ -12,10 +13,4 @@ if(BUILD_WITH_PMT OR BUILD_WITH_FMT)
 endif()
 if(BUILD_WITH_HIP)
   set_source_files_properties(Benchmark.cpp PROPERTIES LANGUAGE HIP)
-endif()
-
-add_library(launch OBJECT launch.cu)
-target_link_libraries(launch PUBLIC cudawrappers::cu)
-if(BUILD_WITH_HIP)
-  set_source_files_properties(launch.cu PROPERTIES LANGUAGE HIP)
 endif()

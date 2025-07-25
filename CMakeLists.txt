@@ -4,10 +4,6 @@ project(cudapeak LANGUAGES CXX)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_BUILD_TYPE Release)
 
-set(CMAKE_CUDA_ARCHITECTURES
-    "86"
-    CACHE STRING "CUDA architecture")
-
 include(FetchContent)
 
 FetchContent_Declare(
@@ -18,16 +14,15 @@ FetchContent_MakeAvailable(cxxopts)
 
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 option(BUILD_WITH_FMT "Build with Frequency Measurement Toolkit support" OFF)
-option(BUILD_KERNEL_DEBUG "Build kernels in debug mode")
 option(BUILD_WITH_HIP "Build with HIP")
 
 if(BUILD_WITH_HIP)
   set(CUDAWRAPPERS_BACKEND "HIP")
   enable_language(HIP)
   add_compile_definitions("__HIP__")
+  set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 else()
   find_package(CUDAToolkit REQUIRED)
-  enable_language(CUDA)
 endif()
 
 include(FetchContent)

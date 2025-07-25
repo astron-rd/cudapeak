@@ -1,27 +1,129 @@
+#include <algorithm>
 #include <iostream>
+#include <tuple>
 
 #include "common/common.h"
 
-__global__ void mma_f16_16_16_16(void *ptr);
-__global__ void mma_bf16_16_16_16(void *ptr);
-#if not defined(__HIP_PLATFORM_AMD__)
-__global__ void bmma_b1_8_8_128_xor(void *ptr);
-__global__ void bmma_b1_16_8_256_xor(void *ptr);
-__global__ void bmma_b1_8_8_128_and(void *ptr);
-__global__ void bmma_b1_16_8_256_and(void *ptr);
-__global__ void mma_s4_8_8_32(void *ptr);
-__global__ void mma_s8_16_16_16(void *ptr);
-__global__ void mma_e4m3_16_8_32(void *ptr);
-__global__ void mma_e5m2_16_8_32(void *ptr);
-__global__ void mma_tf32_16_16_8(void *ptr);
+#include "kernels/mma.cu.o.h"
+
+std::vector<std::string> split(const std::string &s, char delimiter) {
+  std::vector<std::string> tokens;
+  std::string token;
+  std::istringstream tokenStream(s);
+
+  while (std::getline(tokenStream, token, delimiter)) {
+    tokens.push_back(token);
+  }
+
+  return tokens;
+}
+
+int getBitSize(const std::string &kernel_name) {
+  const std::string type = split(kernel_name, '_')[1];
+
+  // Handle special cases first
+  if (type == "e4m3" || type == "e5m2")
+    return 8;
+
+  // Default case: try to extract number from type (e.g., "16" from "f16")
+  for (char c : type) {
+    if (isdigit(c)) {
+      return atoi(type.substr(type.find_first_of("0123456789")).c_str());
+    }
+  }
+
+  // Unknown type
+  return 0;
+}
+
+std::vector<std::string>
+sortKernelsByBitSize(std::vector<std::string> &kernels) {
+  // Create a vector of pairs (bit_size, original_index) for stable sorting
+  std::vector<std::pair<int, size_t>> bit_sizes;
+  for (size_t i = 0; i < kernels.size(); ++i) {
+    bit_sizes.emplace_back(getBitSize(kernels[i]), i);
+  }
+
+  // Stable sort based on bit size
+  std::stable_sort(
+      bit_sizes.begin(), bit_sizes.end(),
+      [](const auto &a, const auto &b) { return a.first > b.first; });
+
+  // Reorder the kernels based on the sorted indices
+  std::vector<std::string> sorted_kernels;
+  for (const auto &[bit_size, idx] : bit_sizes) {
+    sorted_kernels.push_back(kernels[idx]);
+  }
+
+  return sorted_kernels;
+}
+
+std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
+  std::vector<std::string> kernel_names;
+
+  // Always supported across all platforms
+  kernel_names.push_back("mma_f16_16_16_16");
+
+#if defined(__HIP_PLATFORM_AMD__)
+  // AMD-specific kernels
+  kernel_names.push_back("mma_s8_16_16_32");
+
+  if (benchmark.isCDNA()) {
+    kernel_names.push_back("mma_f32_16_16_16");
+  }
+  if (benchmark.isCDNA2() || benchmark.isCDNA3()) {
+    kernel_names.push_back("mma_f64_16_16_16");
+  }
+  if (benchmark.isCDNA3()) {
+    kernel_names.push_back("mma_fp8_16_16_32");
+    kernel_names.push_back("mma_bf8_16_16_32");
+    kernel_names.push_back("mma_xf32_16_16_8");
+  }
 #else
-__global__ void mma_fp8_16_16_32(void *ptr);
-__global__ void mma_bf8_16_16_32(void *ptr);
-__global__ void mma_s8_16_16_32(void *ptr);
-__global__ void mma_f32_16_16_16(void *ptr);
-__global__ void mma_f64_16_16_16(void *ptr);
-__global__ void mma_xf32_16_16_8(void *ptr);
+  // NVIDIA-specific kernels
+  if (!benchmark.isVolta()) {
+    kernel_names.push_back("mma_s4_8_8_32");
+    kernel_names.push_back("mma_s8_16_16_16");
+
+    kernel_names.push_back("bmma_b1_8_8_128_xor");
+    if (!benchmark.isTuring()) {
+      kernel_names.push_back("bmma_b1_8_8_128_and");
+      kernel_names.push_back("bmma_b1_16_8_256_xor");
+      kernel_names.push_back("bmma_b1_16_8_256_and");
+      kernel_names.push_back("mma_bf16_16_16_16");
+      kernel_names.push_back("mma_tf32_16_16_8");
+    }
+  }
+
+  if (benchmark.isAda() || benchmark.isHopper() || benchmark.isBlackwell()) {
+    kernel_names.push_back("mma_e4m3_16_8_32");
+    kernel_names.push_back("mma_e5m2_16_8_32");
+  }
 #endif
+
+  return sortKernelsByBitSize(kernel_names);
+}
+
+std::tuple<int, int, int> extractFragmentSizes(const std::string &input) {
+  // Split the string by underscores
+  auto parts = split(input, '_');
+
+  // We need at least 5 parts (with optional parts after)
+  if (parts.size() < 5) {
+    throw std::invalid_argument("Input string doesn't contain enough parts");
+  }
+
+  try {
+    int m = std::stoi(parts[2]);
+    int n = std::stoi(parts[3]);
+    int k = std::stoi(parts[4]);
+    return std::make_tuple(m, n, k);
+  } catch (const std::invalid_argument &) {
+    throw std::invalid_argument("Failed to convert fragment sizes to integers");
+  } catch (const std::out_of_range &) {
+    throw std::invalid_argument("Fragment size value is out of range");
+  }
+}
 
 int main(int argc, const char *argv[]) {
   Benchmark benchmark(argc, argv);
@@ -32,6 +134,11 @@ int main(int argc, const char *argv[]) {
     return EXIT_SUCCESS;
   }
 #endif
+
+  KernelFactory kernel_factory(mma_source);
+  const std::vector<std::string> kernel_names = getSupportedKernels(benchmark);
+  auto kernels =
+      kernel_factory.compileKernels(benchmark.getDevice(), kernel_names);
 
   // Parameters
   int multiProcessorCount = benchmark.multiProcessorCount();
@@ -61,75 +168,12 @@ int main(int argc, const char *argv[]) {
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
-#if defined(__HIP_PLATFORM_AMD__)
-    benchmark.run(reinterpret_cast<void *>(&mma_s8_16_16_32), grid, block,
-                  "mma_s8_16_16_32", gops * (16 * 16 * 32 * 2), gbytes);
-
-    // FP8 / BF8 / XF32 are only available on CDNA3
-    if (benchmark.isCDNA3()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_fp8_16_16_32), grid, block,
-                    "mma_fp8_16_16_32", gops * (16 * 16 * 32 * 2), gbytes);
-      benchmark.run(reinterpret_cast<void *>(&mma_bf8_16_16_32), grid, block,
-                    "mma_bf8_16_16_32", gops * (16 * 16 * 32 * 2), gbytes);
-      benchmark.run(reinterpret_cast<void *>(&mma_xf32_16_16_8), grid, block,
-                    "mma_xf32_16_16_8", gops * (16 * 16 * 8 * 2), gbytes);
+    for (int j = 0; j < kernel_names.size(); j++) {
+      const std::string &kernel_name = kernel_names[j];
+      auto [m, n, k] = extractFragmentSizes(kernel_name);
+      benchmark.run(kernels[j], grid, block, kernel_name,
+                    gops * (m * n * k * 2), gbytes);
     }
-#else
-    if (!benchmark.isVolta()) {
-      if (!benchmark.isTuring()) {
-        benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_and), grid,
-                      block, "bmma_b1_16_8_256_and", gops * (16 * 8 * 256 * 2),
-                      gbytes);
-        benchmark.run(reinterpret_cast<void *>(&bmma_b1_16_8_256_xor), grid,
-                      block, "bmma_b1_16_8_256_xor", gops * (16 * 8 * 256 * 2),
-                      gbytes);
-        benchmark.run(reinterpret_cast<void *>(&bmma_b1_8_8_128_and), grid,
-                      block, "bmma_b1_8_8_128_and", gops * (8 * 8 * 128 * 2),
-                      gbytes);
-      }
-      benchmark.run(reinterpret_cast<void *>(&bmma_b1_8_8_128_xor), grid, block,
-                    "bmma_b1_8_8_128_xor", gops * (8 * 8 * 128 * 2), gbytes);
-    }
-    if (!benchmark.isVolta()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_s4_8_8_32), grid, block,
-                    "mma_s4_8_8_32", gops * (8 * 8 * 32 * 2), gbytes);
-      benchmark.run(reinterpret_cast<void *>(&mma_s8_16_16_16), grid, block,
-                    "mma_s8_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
-    }
-    if (benchmark.isAda() || benchmark.isHopper() || benchmark.isBlackwell()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_e4m3_16_8_32), grid, block,
-                    "mma_e4m3_16_8_32", gops * (16 * 8 * 32 * 2), gbytes);
-      benchmark.run(reinterpret_cast<void *>(&mma_e5m2_16_8_32), grid, block,
-                    "mma_e5m2_16_8_32", gops * (16 * 8 * 32 * 2), gbytes);
-    }
-#endif
-    benchmark.run(reinterpret_cast<void *>(&mma_f16_16_16_16), grid, block,
-                  "mma_f16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
-#if !defined(__HIP_PLATFORM_AMD__)
-    if (!benchmark.isVolta() && !benchmark.isTuring()) {
-#endif
-      benchmark.run(reinterpret_cast<void *>(&mma_bf16_16_16_16), grid, block,
-                    "mma_bf16_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
-#if !defined(__HIP_PLATFORM_AMD__)
-    }
-#endif
-#if defined(__HIP_PLATFORM_AMD__)
-    // F32 is only available on CDNA
-    if (benchmark.isCDNA()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_f32_16_16_16), grid, block,
-                    "mma_f32_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
-    }
-    // F64 is only available on CDNA2+
-    if (benchmark.isCDNA2() || benchmark.isCDNA3()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_f64_16_16_16), grid, block,
-                    "mma_f64_16_16_16", gops * (16 * 16 * 16 * 2), gbytes);
-    }
-#else
-    if (!benchmark.isVolta() && !benchmark.isTuring()) {
-      benchmark.run(reinterpret_cast<void *>(&mma_tf32_16_16_8), grid, block,
-                    "mma_tf32_16_16_8", gops * (16 * 16 * 8 * 2), gbytes);
-    }
-#endif
   }
 
   return EXIT_SUCCESS;
