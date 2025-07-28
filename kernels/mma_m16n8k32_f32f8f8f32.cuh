@@ -1,3 +1,5 @@
+#include <cuda_fp8.h>
+
 template <>
 class fragment<matrix_a, 16, 8, 32, __nv_fp8_e4m3, row_major>
     : public __frag_base<int, 4> {};
@@ -13,9 +15,6 @@ class fragment<matrix_b, 16, 8, 32, __nv_fp8_e4m3, col_major>
 template <>
 class fragment<matrix_b, 16, 8, 32, __nv_fp8_e5m2, col_major>
     : public __frag_base<int, 2> {};
-
-template <>
-class fragment<accumulator, 16, 8, 32, float> : public __frag_base<float, 4> {};
 
 inline __device__ void
 mma_sync_ptx(fragment<accumulator, 16, 8, 32, float> &d,

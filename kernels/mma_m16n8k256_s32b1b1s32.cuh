@@ -1,5 +1,3 @@
-#include <mma.h>
-
 using namespace nvcuda::wmma;
 
 template <>
