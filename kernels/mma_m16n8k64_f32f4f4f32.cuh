@@ -40,15 +40,20 @@ mma_sync_ptx(fragment<accumulator, 16, 8, 64, float> &d,
 inline __device__ void
 store_matrix_sync(float *p, const fragment<accumulator, 16, 8, 64, float> &d,
                   unsigned ldm, layout_t layout) {
+  unsigned lane = laneid();
+  unsigned group = lane >> 2;
+  unsigned tid = lane & 0x3;
+
   if (layout == mem_row_major) {
-    ((float2 *)p)[ldm / 2 * (laneid() / 4) + laneid() % 4] =
+    reinterpret_cast<float2 *>(p)[ldm / 2 * group + tid] =
         make_float2(d.x[0], d.x[1]);
-    ((float2 *)p)[ldm / 2 * (laneid() / 4 + 8) + laneid() % 4] =
+    reinterpret_cast<float2 *>(p)[ldm / 2 * (group + 8) + tid] =
         make_float2(d.x[2], d.x[3]);
   } else {
-    p[(laneid() % 4) * 2 * ldm + (laneid() / 4)] = d.x[0];
-    p[(laneid() % 4) * 2 * ldm + (laneid() / 4) + ldm] = d.x[1];
-    p[(laneid() % 4) * 2 * ldm + (laneid() / 4 + 8)] = d.x[2];
-    p[(laneid() % 4) * 2 * ldm + (laneid() / 4 + 8) + ldm] = d.x[3];
+    float *base = p + (tid * 2) * ldm + group;
+    base[0] = d.x[0];
+    base[ldm] = d.x[1];
+    base[8] = d.x[2];
+    base[ldm + 8] = d.x[3];
   }
 }
