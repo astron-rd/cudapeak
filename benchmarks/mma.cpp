@@ -101,10 +101,11 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
   if (benchmark.isAda() || benchmark.isHopper() || benchmark.isBlackwell()) {
     kernel_names.push_back("mma_e4m3_16_8_32");
     kernel_names.push_back("mma_e5m2_16_8_32");
+  }
 
-    if (!benchmark.isAda()) {
-      kernel_names.push_back("mma_e2m1_16_8_64");
-    }
+  if (!benchmark.isAda()) {
+    kernel_names.push_back("mma_e2m1_16_8_64");
+    kernel_names.push_back("mma_e3m2_16_8_32");
   }
 #endif
 

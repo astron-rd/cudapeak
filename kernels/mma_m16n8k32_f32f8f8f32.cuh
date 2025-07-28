@@ -14,9 +14,6 @@ template <>
 class fragment<matrix_b, 16, 8, 32, __nv_fp8_e5m2, col_major>
     : public __frag_base<int, 2> {};
 
-template <>
-class fragment<accumulator, 16, 8, 32, float> : public __frag_base<float, 4> {};
-
 inline __device__ void
 mma_sync_ptx(fragment<accumulator, 16, 8, 32, float> &d,
              const fragment<matrix_a, 16, 8, 32, __nv_fp8_e4m3, row_major> &a,
