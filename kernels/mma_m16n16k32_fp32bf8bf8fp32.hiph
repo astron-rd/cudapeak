@@ -1,5 +1,3 @@
-#include <rocwmma/rocwmma.hpp>
-
 #include "precision.h"
 
 namespace wmma = rocwmma;

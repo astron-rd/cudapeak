@@ -103,7 +103,7 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
     kernel_names.push_back("mma_e5m2_16_8_32");
   }
 
-  if (!benchmark.isAda()) {
+  if (benchmark.isBlackwell()) {
     kernel_names.push_back("mma_e2m1_16_8_64");
     kernel_names.push_back("mma_e3m2_16_8_32");
   }
