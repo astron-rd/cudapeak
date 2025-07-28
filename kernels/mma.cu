@@ -16,6 +16,7 @@ struct hip_fp8_e5m2;
 #endif
 
 #else
+#include <cuda_fp4.h>
 #include <cuda_fp8.h>
 #include <mma.h>
 
@@ -136,6 +137,11 @@ __device__ void mma_kernel(Tout *data) {
 #include "mma_m8n8k32_s32s4s4s32.cuh"
 #endif
 
+#if __CUDA_ARCH__ >= 1000
+#define ENABLE_FP4
+#include "mma_m16n8k64_f32f4f4f32.cuh"
+#endif
+
 #if __CUDA_ARCH__ >= 800
 #define ENABLE_TF32
 #define ENABLE_BF16
@@ -228,6 +234,12 @@ __global__ void mma_e4m3_16_8_32(void *data) {
 __global__ void mma_e5m2_16_8_32(void *data) {
 #if defined(ENABLE_FP8)
   mma_kernel_ptx<__nv_fp8_e5m2, float, 16, 8, 32>((float *)data);
+#endif
+}
+
+__global__ void mma_e2m1_16_8_64(void *data) {
+#if defined(ENABLE_FP4)
+  mma_kernel_ptx<__nv_fp4_e2m1, float, 16, 8, 64>((float *)data);
 #endif
 }
 

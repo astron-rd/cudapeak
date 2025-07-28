@@ -1,4 +1,3 @@
-
 template <>
 class fragment<matrix_a, 16, 8, 32, __nv_fp8_e4m3, row_major>
     : public __frag_base<int, 4> {};
