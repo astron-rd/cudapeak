@@ -87,6 +87,7 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
   if (!benchmark.isVolta()) {
     kernel_names.push_back("mma_s4_8_8_32");
     kernel_names.push_back("mma_s8_16_16_16");
+    kernel_names.push_back("mma_s8_16_8_32");
 
     kernel_names.push_back("bmma_b1_8_8_128_xor");
     if (!benchmark.isTuring()) {

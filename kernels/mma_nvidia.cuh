@@ -37,6 +37,7 @@ __device__ void mma_kernel(Tout *data) {
 #define ENABLE_INT4
 #define ENABLE_INT8
 #include "mma_m8n8k32_s32s4s4s32.cuh"
+#include "mma_m8n8k32_s32s8s8s32.cuh"
 #endif
 
 template <>
@@ -119,6 +120,12 @@ __global__ void mma_s4_8_8_32(void *data) {
 __global__ void mma_s8_16_16_16(void *data) {
 #if defined(ENABLE_INT8)
   mma_kernel<signed char, signed char, int, 16, 16, 16>((int *)data);
+#endif
+}
+
+__global__ void mma_s8_16_8_32(void *data) {
+#if defined(ENABLE_INT8)
+  mma_kernel_ptx<signed char, signed char, int, 16, 8, 32>((int *)data);
 #endif
 }
 
