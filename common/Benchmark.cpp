@@ -306,22 +306,10 @@ Measurement Benchmark::measure_function(std::shared_ptr<cu::Function> function,
 
     std::thread thread([&] {
       context_->setCurrent();
-      cu::Event start;
-      cu::Event end;
-      stream_->record(start);
-      stream_->launchKernel(*function, grid.x, grid.y, grid.z, block.x, block.y,
-                            block.z, 0, args_);
-      stream_->record(end);
-      milliseconds = end.elapsedTime(start);
+      milliseconds = run_function(function, grid, block, 1);
       nr_iterations = benchmarkDuration() / milliseconds;
-      milliseconds = 0;
-      stream_->record(start);
-      for (int i = 0; i < nr_iterations; i++) {
-        stream_->launchKernel(*function, grid.x, grid.y, grid.z, block.x,
-                              block.y, block.z, 0, args_);
-      }
-      stream_->record(end);
-      m.runtime = end.elapsedTime(start) / nr_iterations;
+      milliseconds = run_function(function, grid, block, nr_iterations);
+      m.runtime = milliseconds / nr_iterations;
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
