@@ -11,13 +11,11 @@ template <>
 class wmma::fragment<wmma::accumulator, 16, 8, 32, int>
     : public __frag_base<int, 4> {};
 
-inline __device__ void mma_sync_ptx(
-    fragment<accumulator, 16, 8, 32, int> &d,
-    const fragment<matrix_a, 16, 8, 32, signed char, row_major>
-        &a,
-    const fragment<matrix_b, 16, 8, 32, signed char, col_major>
-        &b,
-    const fragment<accumulator, 16, 8, 32, int> &c) {
+inline __device__ void
+mma_sync_ptx(fragment<accumulator, 16, 8, 32, int> &d,
+             const fragment<matrix_a, 16, 8, 32, signed char, row_major> &a,
+             const fragment<matrix_b, 16, 8, 32, signed char, col_major> &b,
+             const fragment<accumulator, 16, 8, 32, int> &c) {
   asm volatile(
       "mma.sync.aligned.row.col.m16n8k32.s32.s8.s8.s32 {%0, %1, %2, %3}, "
       "{%4, %5, %6, %7}, {%8, %9}, {%10, %11, %12, %13};"
