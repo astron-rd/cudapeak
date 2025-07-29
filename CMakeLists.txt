@@ -26,6 +26,7 @@ else()
 endif()
 
 include(FetchContent)
+set(CUDAWRAPPERS_COMPONENTS nvml;nvrtc)
 FetchContent_Declare(
   cudawrappers
   GIT_REPOSITORY https://github.com/nlesc-recruit/cudawrappers

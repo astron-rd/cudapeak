@@ -10,6 +10,9 @@ foreach(source_file ${BENCHMARK_SOURCES})
   target_link_libraries(
     ${EXECUTABLE_NAME} PRIVATE $<TARGET_OBJECTS:common> cudawrappers::cu
                                cudawrappers::nvrtc cxxopts)
+  if(BUILD_WITH_PMT)
+    target_link_libraries(${EXECUTABLE_NAME} PRIVATE pmt Threads::Threads)
+  endif()
   set(KERNEL_FILE "${CMAKE_SOURCE_DIR}/kernels/${kernel_file}")
   target_embed_source(${EXECUTABLE_NAME} ${KERNEL_FILE})
 endforeach()
