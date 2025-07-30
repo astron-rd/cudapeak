@@ -95,15 +95,8 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   const unsigned device_number = results["device_id"].as<unsigned>();
   nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
   nr_iterations_ = results["nr_iterations"].as<unsigned>();
-#if defined(HAVE_PMT) || defined(HAVE_FMT)
-  benchmark_duration_ = results["benchmark_duration"].as<unsigned>();
-#endif
-#if defined(HAVE_PMT)
-  measure_power_ = results["measure_power"].as<bool>();
-#endif
-#if defined(HAVE_FMT)
-  measure_frequency_ = results["measure_frequency"].as<bool>();
-#endif
+  const unsigned benchmark_duration =
+      results["benchmark_duration"].as<unsigned>();
 
   // Setup CUDA
   cu::init();
@@ -129,21 +122,13 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
 #endif
   std::cout << clockRate() * 1e-6 << " Ghz)" << std::endl;
 
-#if defined(HAVE_PMT)
-#if defined(__HIP_PLATFORM_AMD__)
-  pm_ = pmt::rocm::ROCM::Create(device_number);
-#else
-  pm_ = pmt::nvidia::NVIDIA::Create(device_number);
-#endif
-#endif
-
-#if defined(HAVE_FMT)
-#if defined(__HIP_PLATFORM_AMD__)
-  fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(device_number);
-#else
-  fm_ = std::make_unique<fmt::nvidia::NVIDIA>(*device_);
-#endif
-#endif
+  kernel_runner_ = std::make_unique<KernelRunner>(*device_, *context_);
+  if (results["measure_power"].as<bool>()) {
+    kernel_runner_->enable_power_measurement(benchmark_duration);
+  }
+  if (results["measure_frequency"].as<bool>()) {
+    kernel_runner_->enable_frequency_measurement(benchmark_duration);
+  }
 }
 
 #if defined(__HIP_PLATFORM_AMD__)
@@ -228,7 +213,8 @@ void Benchmark::setArgs(std::vector<const void *> args) { args_ = args; }
 void Benchmark::run(std::shared_ptr<cu::Function> function, dim3 grid,
                     dim3 block, const std::string &name, double gops,
                     double gbytes) {
-  Measurement m = measure_function(function, grid, block);
+  Measurement m = kernel_runner_->run(*stream_, *function, nr_iterations_, grid,
+                                      block, args_);
   report(name, gops, gbytes, m);
 }
 
@@ -246,93 +232,3 @@ int Benchmark::maxThreadsPerBlock() {
 }
 
 size_t Benchmark::totalGlobalMem() { return context_->getTotalMemory(); }
-
-float Benchmark::run_function(std::shared_ptr<cu::Function> function, dim3 grid,
-                              dim3 block, int n) {
-  cu::Event start;
-  cu::Event end;
-  stream_->record(start);
-  for (int i = 0; i < n; i++) {
-    stream_->launchKernel(*function, grid.x, grid.y, grid.z, block.x, block.y,
-                          block.z, 0, args_);
-  }
-  stream_->record(end);
-  end.synchronize();
-  return end.elapsedTime(start);
-}
-
-double Benchmark::measure_power() {
-#if defined(HAVE_PMT)
-  pmt::State state_start;
-
-  if (measure_power_) {
-    state_start = pm_->Read();
-  }
-  std::this_thread::sleep_for(
-      std::chrono::milliseconds(int(0.2 * benchmarkDuration())));
-  if (measure_power_) {
-    pmt::State state_end = pm_->Read();
-    return pmt::PMT::watts(state_start, state_end);
-  }
-#endif
-  return 0;
-}
-
-double Benchmark::measure_frequency() {
-#if defined(HAVE_FMT)
-  if (measure_frequency_) {
-    auto names = fm_->names();
-    auto frequency = fm_->get();
-#if defined(__HIP_PLATFORM_AMD__)
-    assert(names[0].compare("sclk") == 0);
-    return frequency[0];
-#else
-    assert(names[1].compare("sm") == 0);
-    return frequency[1];
-#endif
-  }
-#endif
-  return 0;
-}
-
-Measurement Benchmark::measure_function(std::shared_ptr<cu::Function> function,
-                                        dim3 grid, dim3 block) {
-#if defined(HAVE_PMT) || defined(HAVE_FMT)
-  if (measureContinuous()) {
-    Measurement m;
-    float milliseconds = 0;
-    unsigned nr_iterations = 0;
-    m.frequency = 0;
-
-    std::thread thread([&] {
-      context_->setCurrent();
-      milliseconds = run_function(function, grid, block, 1);
-      nr_iterations = benchmarkDuration() / milliseconds;
-      milliseconds = run_function(function, grid, block, nr_iterations);
-      m.runtime = milliseconds / nr_iterations;
-    });
-    std::this_thread::sleep_for(
-        std::chrono::milliseconds(int(0.5 * benchmarkDuration())));
-    if (measure_power_) {
-      m.power = measure_power();
-    }
-    if (measure_frequency_) {
-      m.frequency = measure_frequency();
-    }
-    if (thread.joinable()) {
-      thread.join();
-    }
-
-    return m;
-  }
-#endif
-
-  // Benchmark (timing only)
-  const float milliseconds =
-      run_function(function, grid, block, nrIterations());
-  Measurement m;
-  m.runtime = milliseconds / nrIterations();
-  m.power = 0;
-  m.frequency = 0;
-  return m;
-}

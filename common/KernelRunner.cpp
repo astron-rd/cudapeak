@@ -83,11 +83,19 @@ void KernelRunner::enable_power_measurement(unsigned int benchmark_duration) {
 #endif
 }
 
+KernelRunner::~KernelRunner() = default;
+
 void KernelRunner::enable_frequency_measurement(
     unsigned int benchmark_duration) {
 #if defined(HAVE_FMT)
   impl_->enable_frequency_measurement(benchmark_duration);
 #endif
+}
+
+Measurement KernelRunner::run(cu::Stream &stream, cu::Function &function,
+                              unsigned int nr_iterations, dim3 grid, dim3 block,
+                              std::vector<const void *> &args) {
+  return impl_->run(stream, function, nr_iterations, grid, block, args);
 }
 
 float run_function(cu::Stream &stream, cu::Function &function, dim3 grid,

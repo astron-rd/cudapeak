@@ -6,14 +6,7 @@
 
 #include <cudawrappers/cu.hpp>
 
-#if defined(HAVE_PMT)
-#include <pmt.h>
-#endif
-
-#if defined(HAVE_FMT)
-#include <fmt/fmt.h>
-#endif
-
+#include "KernelRunner.h"
 #include "Measurement.h"
 
 class Benchmark {
@@ -51,30 +44,8 @@ public:
 
   unsigned nrBenchmarks() { return nr_benchmarks_; }
   unsigned nrIterations() { return nr_iterations_; }
-#if defined(HAVE_PMT) || defined(HAVE_FMT)
-  unsigned benchmarkDuration() { return benchmark_duration_; }
-#endif
-#if defined(HAVE_PMT) || defined(HAVE_FMT)
-  bool measureContinuous() {
-    bool result = false;
-#if defined(HAVE_PMT)
-    result |= measure_power_;
-#endif
-#if defined(HAVE_FMT)
-    result |= measure_frequency_;
-#endif
-    return result;
-  }
-#endif
 
 protected:
-  double measure_power();
-  double measure_frequency();
-  float run_function(std::shared_ptr<cu::Function> function, dim3 grid,
-                     dim3 block, int n = 1);
-  Measurement measure_function(std::shared_ptr<cu::Function> function,
-                               dim3 grid, dim3 block);
-
   std::vector<const void *> args_;
   unsigned nr_benchmarks_;
   unsigned nr_iterations_;
@@ -82,17 +53,7 @@ protected:
   std::unique_ptr<cu::Context> context_;
   std::unique_ptr<cu::Stream> stream_;
   std::unique_ptr<cu::DeviceMemory> d_data_;
-  bool measure_power_ = false;
-  bool measure_frequency_ = false;
-#if defined(HAVE_PMT)
-  std::shared_ptr<pmt::PMT> pm_;
-#endif
-#if defined(HAVE_FMT)
-  std::shared_ptr<fmt::FMT> fm_;
-#endif
-#if defined(HAVE_PMT) || defined(HAVE_FMT)
-  unsigned benchmark_duration_;
-#endif
+  std::unique_ptr<KernelRunner> kernel_runner_;
 };
 
 #endif // end BENCHMARK_H

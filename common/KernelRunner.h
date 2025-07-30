@@ -8,7 +8,7 @@ class KernelRunner {
 
 public:
   KernelRunner(cu::Device &device, cu::Context &context);
-
+  ~KernelRunner();
   void enable_power_measurement(unsigned int benchmark_duration);
   void enable_frequency_measurement(unsigned int benchmark_duration);
   Measurement run(cu::Stream &stream, cu::Function &function,
