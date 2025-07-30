@@ -156,7 +156,6 @@ Measurement KernelRunner::Impl::run(cu::Stream &stream, cu::Function function,
     Measurement m;
     float milliseconds = 0;
     unsigned nr_iterations = 0;
-    m.frequency = 0;
 
     std::thread thread([&] {
       context_.setCurrent();
@@ -168,12 +167,8 @@ Measurement KernelRunner::Impl::run(cu::Stream &stream, cu::Function function,
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmark_duration_)));
-    if (measure_power_) {
-      m.power = measure_power();
-    }
-    if (measure_frequency_) {
-      m.frequency = measure_frequency();
-    }
+    m.power = measure_power_ ? measure_power() : 0;
+    m.frequency = measure_frequency_ ? measure_frequency() : 0;
     if (thread.joinable()) {
       thread.join();
     }
