@@ -17,7 +17,7 @@ public:
 #if defined(__HIP_PLATFORM_AMD__)
     pm_ = pmt::rocm::ROCM::Create(0);
 #else
-    pm_ = pmt::nvidia::NVIDIA::Create(0);
+    pm_ = pmt::nvml::NVML::Create(device_);
 #endif
 #endif
 
