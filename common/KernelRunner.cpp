@@ -125,6 +125,8 @@ float KernelRunner::Impl::measure_power() {
   if (measure_power_) {
     pmt::State state_end = pm_->Read();
     return pmt::PMT::watts(state_start, state_end);
+  } else {
+    return 0;
   }
 }
 #endif
@@ -141,6 +143,8 @@ float KernelRunner::Impl::measure_frequency() {
     assert(names[1].compare("sm") == 0);
     return frequency[1];
 #endif
+  } else {
+    return 0;
   }
 }
 #endif
@@ -165,8 +169,16 @@ Measurement KernelRunner::Impl::run(cu::Stream &stream, cu::Function function,
     });
     std::this_thread::sleep_for(
         std::chrono::milliseconds(int(0.5 * benchmark_duration_)));
+#if defined(HAVE_PMT)
     m.power = measure_power_ ? measure_power() : 0;
+#else
+    m.power = 0;
+#endif
+#if defined(HAVE_FMT)
     m.frequency = measure_frequency_ ? measure_frequency() : 0;
+#else
+    m.frequency = 0;
+#endif
     if (thread.joinable()) {
       thread.join();
     }
