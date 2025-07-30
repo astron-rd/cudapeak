@@ -23,7 +23,7 @@ public:
 
 #if defined(HAVE_FMT)
 #if defined(__HIP_PLATFORM_AMD__)
-    fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(device_number);
+    fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(0);
 #else
     fm_ = std::make_unique<fmt::nvidia::NVIDIA>(device_);
 #endif
