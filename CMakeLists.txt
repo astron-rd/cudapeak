@@ -35,7 +35,7 @@ FetchContent_MakeAvailable(cudawrappers)
 
 if(BUILD_WITH_PMT)
   if(BUILD_WITH_HIP)
-    set(PMT_BUILD_ROCM ON)
+    set(PMT_BUILD_AMDSMI ON)
   else()
     set(PMT_BUILD_NVML ON)
     set(PMT_BUILD_TEGRA ON)

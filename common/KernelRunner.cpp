@@ -15,9 +15,9 @@ public:
       : device_(device), context_(context) {
 #if defined(HAVE_PMT)
 #if defined(__HIP_PLATFORM_AMD__)
-    pm_ = pmt::rocm::ROCM::Create(0);
+    pm_ = pmt::amdsmi::AMDSMI::Create(0);
 #else
-    pm_ = pmt::nvml::NVML::Create(device_);
+    pm_ = pmt::nvidia::NVIDIA::Create(device_);
 #endif
 #endif
 
