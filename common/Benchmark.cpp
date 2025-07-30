@@ -95,8 +95,6 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   const unsigned device_number = results["device_id"].as<unsigned>();
   nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
   nr_iterations_ = results["nr_iterations"].as<unsigned>();
-  const unsigned benchmark_duration =
-      results["benchmark_duration"].as<unsigned>();
 
   // Setup CUDA
   cu::init();
@@ -123,12 +121,20 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   std::cout << clockRate() * 1e-6 << " Ghz)" << std::endl;
 
   kernel_runner_ = std::make_unique<KernelRunner>(*device_, *context_);
+#if defined(HAVE_PMT)
   if (results["measure_power"].as<bool>()) {
+    const unsigned benchmark_duration =
+        results["benchmark_duration"].as<unsigned>();
     kernel_runner_->enable_power_measurement(benchmark_duration);
   }
+#endif
+#if defined(HAVE_FMT)
   if (results["measure_frequency"].as<bool>()) {
+    const unsigned benchmark_duration =
+        results["benchmark_duration"].as<unsigned>();
     kernel_runner_->enable_frequency_measurement(benchmark_duration);
   }
+#endif
 }
 
 #if defined(__HIP_PLATFORM_AMD__)

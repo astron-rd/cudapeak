@@ -113,8 +113,8 @@ float run_function(cu::Stream &stream, cu::Function &function, dim3 grid,
   return end.elapsedTime(start);
 }
 
-float KernelRunner::Impl::measure_power() {
 #if defined(HAVE_PMT)
+float KernelRunner::Impl::measure_power() {
   pmt::State state_start;
 
   if (measure_power_) {
@@ -126,12 +126,11 @@ float KernelRunner::Impl::measure_power() {
     pmt::State state_end = pm_->Read();
     return pmt::PMT::watts(state_start, state_end);
   }
-#endif
-  return 0;
 }
+#endif
 
-float KernelRunner::Impl::measure_frequency() {
 #if defined(HAVE_FMT)
+float KernelRunner::Impl::measure_frequency() {
   if (measure_frequency_) {
     auto names = fm_->names();
     auto frequency = fm_->get();
@@ -143,9 +142,8 @@ float KernelRunner::Impl::measure_frequency() {
     return frequency[1];
 #endif
   }
-#endif
-  return 0;
 }
+#endif
 
 Measurement KernelRunner::Impl::run(cu::Stream &stream, cu::Function function,
                                     unsigned int nr_iterations, dim3 grid,
