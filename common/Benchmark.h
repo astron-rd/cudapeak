@@ -12,6 +12,7 @@
 class Benchmark {
 public:
   Benchmark(int argc, const char *argv[]);
+  ~Benchmark();
 
 #if defined(__HIP_PLATFORM_AMD__)
   bool isCDNA();
@@ -49,6 +50,7 @@ protected:
   std::vector<const void *> args_;
   unsigned nr_benchmarks_;
   unsigned nr_iterations_;
+  bool enable_json_output_;
   std::unique_ptr<cu::Device> device_;
   std::unique_ptr<cu::Context> context_;
   std::unique_ptr<cu::Stream> stream_;
