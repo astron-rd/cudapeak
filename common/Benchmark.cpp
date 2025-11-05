@@ -12,7 +12,6 @@
 #include "common.h"
 
 namespace {
-
 cxxopts::Options setupCommandLineParser(const char *argv[]) {
   cxxopts::Options options(argv[0]);
 
@@ -28,6 +27,7 @@ cxxopts::Options setupCommandLineParser(const char *argv[]) {
   const unsigned BENCHMARK_DURATION = 4000; // ms
 #endif
   const unsigned DEVICE_ID = 0;
+  const bool JSON_OUTPUT = false;
 
   options.add_options()(
       "nr_benchmarks", "Number of benchmarks",
@@ -49,6 +49,8 @@ cxxopts::Options setupCommandLineParser(const char *argv[]) {
 #endif
       "device_id", "Device ID",
       cxxopts::value<unsigned>()->default_value(std::to_string(DEVICE_ID)))(
+      "j,json", "Print output in JSON format",
+      cxxopts::value<bool>()->default_value(std::to_string(JSON_OUTPUT)))(
       "h,help", "Print help");
 
   return options;
@@ -80,13 +82,18 @@ void Benchmark::report(const std::string &name, double gops, double gbytes,
                        Measurement &m) {
   const double milliseconds = m.runtime;
   const double seconds = milliseconds * 1e-3;
-  std::cout << std::setw(w1) << std::string(name) << ": ";
-  std::cout << std::setprecision(2) << std::fixed;
-  std::cout << std::setw(w2) << milliseconds << " ms";
   m.gops = gops;
   m.gbytes = gbytes;
-  std::cout << m;
-  std::cout << std::endl;
+  if (enable_json_output_) {
+    std::cout << "{\"name\": \"" << name << "\", ";
+    m.toJson(std::cout);
+    std::cout << "}," << std::endl;
+  } else {
+    std::cout << std::setw(w1) << std::string(name) << ": ";
+    std::cout << std::setprecision(2) << std::fixed;
+    std::cout << m;
+    std::cout << std::endl;
+  }
 }
 
 Benchmark::Benchmark(int argc, const char *argv[]) {
@@ -95,6 +102,7 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   const unsigned device_number = results["device_id"].as<unsigned>();
   nr_benchmarks_ = results["nr_benchmarks"].as<unsigned>();
   nr_iterations_ = results["nr_iterations"].as<unsigned>();
+  enable_json_output_ = results["json"].as<bool>();
 
   // Setup CUDA
   cu::init();
@@ -103,22 +111,30 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
       std::make_unique<cu::Context>(CU_CTX_SCHED_BLOCKING_SYNC, *device_);
   stream_ = std::make_unique<cu::Stream>();
 
-  // Print CUDA device information
-  std::cout << "Device " << device_number << ": " << device_->getName();
-  std::cout << " (" << device_->getArch() << ", " << multiProcessorCount()
-            << " ";
-#if defined(__HIP_PLATFORM_AMD__)
-  if (isCDNA()) {
-    std::cout << "CUs, ";
-  } else if (isRDNA3()) {
-    std::cout << "WGPs, ";
+  if (enable_json_output_) {
+    std::cout << "[\n{\"device_number\": " << device_number
+              << ", \"device_name\": \"" << device_->getName()
+              << "\", \"architecture\": \"" << device_->getArch()
+              << "\", \"multi_processor_count\": " << multiProcessorCount()
+              << ", \"clock_rate\": " << clockRate() * 1e-6 << "},"
+              << std::endl;
   } else {
-    std::cout << "units, ";
-  }
+    std::cout << "Device " << device_number << ": " << device_->getName();
+    std::cout << " (" << device_->getArch() << ", " << multiProcessorCount()
+              << " ";
+#if defined(__HIP_PLATFORM_AMD__)
+    if (isCDNA()) {
+      std::cout << "CUs, ";
+    } else if (isRDNA3()) {
+      std::cout << "WGPs, ";
+    } else {
+      std::cout << "units, ";
+    }
 #else
-  std::cout << "SMs, ";
+    std::cout << "SMs, ";
 #endif
-  std::cout << clockRate() * 1e-6 << " Ghz)" << std::endl;
+    std::cout << clockRate() * 1e-6 << " Ghz)" << std::endl;
+  }
 
   kernel_runner_ = std::make_unique<KernelRunner>(*device_, *context_);
 #if defined(HAVE_PMT)
@@ -135,6 +151,12 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
     kernel_runner_->enable_frequency_measurement(benchmark_duration);
   }
 #endif
+}
+
+Benchmark::~Benchmark() {
+  if (enable_json_output_) {
+    std::cout << "]" << std::endl;
+  }
 }
 
 #if defined(__HIP_PLATFORM_AMD__)
