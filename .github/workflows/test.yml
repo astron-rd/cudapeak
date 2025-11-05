@@ -21,7 +21,7 @@ jobs:
       PARTITION_NAME: ${{ matrix.partition }}
     steps:
       - uses: actions/checkout@v4
-      - uses: astron-rd/slurm-action@v1
+      - uses: astron-rd/slurm-action@v1.2
         with:
           partition: ${{ matrix.partition }}
           gres: ${{ matrix.gres }}
