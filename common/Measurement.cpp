@@ -17,7 +17,10 @@ void Measurement::print_ops(std::ostream &stream, bool json) const {
   if (gops != 0) {
     const double tops = gops / seconds * 1e-3;
     if (json) {
-      stream << "\"tops\": " << tops << ", ";
+      stream << "\"tops\": " << tops;
+      if (power > 0 || gbytes > 0 || frequency > 0) {
+        stream << ", ";
+      }
     } else {
       stream << ", " << std::setw(w2) << tops << " TOps/s";
     }
