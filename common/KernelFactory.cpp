@@ -24,7 +24,6 @@ KernelFactory::compileKernels(cu::Device &device,
   }
 
   std::vector<std::string> options = {
-      "-I" + cuda_include_path,
 #if defined(__HIP__)
       "-ffast-math",
       "-std=c++17",
@@ -33,6 +32,10 @@ KernelFactory::compileKernels(cu::Device &device,
       "-arch=" + arch,
 #endif
   };
+
+  for (const auto &include_path : nvrtc::findIncludePaths()) {
+    options.push_back("-I" + include_path);
+  }
 
   for (const auto &kernel_name : kernel_names) {
     program_->addNameExpression(kernel_name);
