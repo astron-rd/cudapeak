@@ -1,6 +1,7 @@
 add_library(common OBJECT Benchmark.cpp common.cpp KernelFactory.cpp
                           KernelRunner.cpp Measurement.cpp)
-target_link_libraries(common PUBLIC cxxopts cudawrappers::cu)
+target_link_libraries(common PUBLIC cxxopts cudawrappers::cu
+                                    nlohmann_json::nlohmann_json)
 if(BUILD_WITH_PMT)
   target_link_libraries(common PRIVATE pmt)
 endif()

@@ -33,6 +33,12 @@ FetchContent_Declare(
   GIT_TAG main)
 FetchContent_MakeAvailable(cudawrappers)
 
+FetchContent_Declare(
+  json
+  GIT_REPOSITORY https://github.com/nlohmann/json
+  GIT_TAG v3.12.0)
+FetchContent_MakeAvailable(json)
+
 if(BUILD_WITH_PMT)
   if(BUILD_WITH_HIP)
     set(PMT_BUILD_ROCM ON)

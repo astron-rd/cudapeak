@@ -8,8 +8,9 @@ foreach(source_file ${BENCHMARK_SOURCES})
   add_executable(${EXECUTABLE_NAME} ${source_file})
   target_include_directories(${EXECUTABLE_NAME} PRIVATE ${CMAKE_SOURCE_DIR})
   target_link_libraries(
-    ${EXECUTABLE_NAME} PRIVATE $<TARGET_OBJECTS:common> cudawrappers::cu
-                               cudawrappers::nvrtc cxxopts)
+    ${EXECUTABLE_NAME}
+    PRIVATE $<TARGET_OBJECTS:common> cudawrappers::cu cudawrappers::nvrtc
+            cxxopts nlohmann_json::nlohmann_json)
   if(BUILD_WITH_PMT)
     target_link_libraries(${EXECUTABLE_NAME} PRIVATE pmt)
   endif()

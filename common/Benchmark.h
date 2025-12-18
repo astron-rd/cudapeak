@@ -5,6 +5,7 @@
 #include <string>
 
 #include <cudawrappers/cu.hpp>
+#include <nlohmann/json.hpp>
 
 #include "KernelRunner.h"
 #include "Measurement.h"
@@ -56,6 +57,8 @@ protected:
   std::unique_ptr<cu::Stream> stream_;
   std::unique_ptr<cu::DeviceMemory> d_data_;
   std::unique_ptr<KernelRunner> kernel_runner_;
+
+  nlohmann::json json_output_;
 };
 
 #endif // end BENCHMARK_H
