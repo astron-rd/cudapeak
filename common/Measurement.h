@@ -1,6 +1,8 @@
 #ifndef MEASUREMENT_H
 #define MEASUREMENT_H
 
+#include <nlohmann/json.hpp>
+
 class Measurement {
 public:
   double runtime; // milliseconds
@@ -16,7 +18,7 @@ public:
   void print_bandwidth(std::ostream &stream, bool json = false) const;
   void print_frequency(std::ostream &stream, bool json = false) const;
 
-  void toJson(std::ostream &stream) const;
+  void toJson(nlohmann::json &j) const;
 };
 
 std::ostream &operator<<(std::ostream &stream, const Measurement &m);

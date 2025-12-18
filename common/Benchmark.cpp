@@ -6,6 +6,7 @@
 #include <cudawrappers/cu.hpp>
 #include <cudawrappers/nvrtc.hpp>
 #include <cxxopts.hpp>
+#include <nlohmann/json.hpp>
 
 #include "Benchmark.h"
 #include "Measurement.h"
@@ -85,9 +86,10 @@ void Benchmark::report(const std::string &name, double gops, double gbytes,
   m.gops = gops;
   m.gbytes = gbytes;
   if (enable_json_output_) {
-    std::cout << "{\"name\": \"" << name << "\", ";
-    m.toJson(std::cout);
-    std::cout << "}," << std::endl;
+    nlohmann::json obj;
+    obj["name"] = name;
+    m.toJson(obj);
+    std::cout << obj.dump() << "," << std::endl;
   } else {
     std::cout << std::setw(w1) << std::string(name) << ": ";
     std::cout << std::setprecision(2) << std::fixed;
@@ -112,12 +114,13 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   stream_ = std::make_unique<cu::Stream>();
 
   if (enable_json_output_) {
-    std::cout << "[\n{\"device_number\": " << device_number
-              << ", \"device_name\": \"" << device_->getName()
-              << "\", \"architecture\": \"" << device_->getArch()
-              << "\", \"multi_processor_count\": " << multiProcessorCount()
-              << ", \"clock_rate\": " << clockRate() * 1e-6 << "},"
-              << std::endl;
+    nlohmann::json dev;
+    dev["device_number"] = device_number;
+    dev["device_name"] = device_->getName();
+    dev["architecture"] = device_->getArch();
+    dev["multi_processor_count"] = multiProcessorCount();
+    dev["clock_rate"] = clockRate() * 1e-6;
+    std::cout << "[\n" << dev.dump() << "," << std::endl;
   } else {
     std::cout << "Device " << device_number << ": " << device_->getName();
     std::cout << " (" << device_->getArch() << ", " << multiProcessorCount()

@@ -1,5 +1,6 @@
 #include <iomanip>
 #include <iostream>
+#include <nlohmann/json.hpp>
 
 #include "Measurement.h"
 #include "common.h"
@@ -81,11 +82,25 @@ std::ostream &operator<<(std::ostream &stream, const Measurement &m) {
   return stream;
 }
 
-void Measurement::toJson(std::ostream &stream) const {
-  print_runtime(stream, true);
-  print_ops(stream, true);
-  print_power(stream, true);
-  print_efficiency(stream, true);
-  print_bandwidth(stream, true);
-  print_frequency(stream, true);
+void Measurement::toJson(nlohmann::json &j) const {
+  j["runtime"] = runtime;
+  const double seconds = runtime * 1e-3;
+  if (gops != 0) {
+    const double tops = gops / seconds * 1e-3;
+    j["tops"] = tops;
+  }
+  if (power > 1) {
+    j["power"] = power;
+  }
+  if (gops != 0 && power > 1) {
+    const double efficiency = gops / seconds / power;
+    j["efficiency"] = efficiency;
+  }
+  if (gbytes != 0) {
+    const double bandwidth = gbytes / seconds;
+    j["bandwidth"] = bandwidth;
+  }
+  if (frequency != 0) {
+    j["frequency"] = frequency;
+  }
 }
