@@ -39,10 +39,6 @@ FetchContent_Declare(
   GIT_TAG v3.12.0)
 FetchContent_MakeAvailable(json)
 
-get_target_property(incs nlohmann_json::nlohmann_json
-                    INTERFACE_INCLUDE_DIRECTORIES)
-message("${incs}")
-
 if(BUILD_WITH_PMT)
   if(BUILD_WITH_HIP)
     set(PMT_BUILD_ROCM ON)
