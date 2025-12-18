@@ -120,11 +120,7 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
     dev["device_name"] = device_->getName();
     dev["architecture"] = device_->getArch();
     dev["multi_processor_count"] = multiProcessorCount();
-    {
-      const double cr = clockRate() * 1e-6; // GHz
-      const double cr_rounded = std::round(cr * 1000.0) / 1000.0; // 3 digits
-      dev["clock_rate"] = cr_rounded;
-    }
+    dev["clock_rate"] = clockRate() * 1e-6; // GHz
     json_output_.push_back(dev);
   } else {
     std::cout << "Device " << device_number << ": " << device_->getName();
