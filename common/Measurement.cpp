@@ -1,3 +1,4 @@
+#include <cmath>
 #include <iomanip>
 #include <iostream>
 #include <nlohmann/json.hpp>
@@ -83,23 +84,40 @@ std::ostream &operator<<(std::ostream &stream, const Measurement &m) {
 }
 
 void Measurement::toJson(nlohmann::json &j) const {
-  j["runtime"] = runtime;
+  auto round_digits = [](double v, int digits) {
+    double f = std::pow(10.0, digits);
+    return std::round(v * f) / f;
+  };
+  const int PREC = 3;
+
+  // runtime (ms)
+  if (runtime != 0) {
+    j["runtime"] = round_digits(runtime, PREC);
+  } else {
+    j["runtime"] = runtime;
+  }
+
   const double seconds = runtime * 1e-3;
-  if (gops != 0) {
+
+  if (gops != 0 && runtime != 0) {
     const double tops = gops / seconds * 1e-3;
-    j["tops"] = tops;
+    j["tops"] = round_digits(tops, PREC);
   }
+
   if (power > 1) {
-    j["power"] = power;
+    j["power"] = round_digits(power, PREC);
   }
-  if (gops != 0 && power > 1) {
+
+  if (gops != 0 && power > 1 && runtime != 0) {
     const double efficiency = gops / seconds / power;
-    j["efficiency"] = efficiency;
+    j["efficiency"] = round_digits(efficiency, PREC);
   }
-  if (gbytes != 0) {
+
+  if (gbytes != 0 && runtime != 0) {
     const double bandwidth = gbytes / seconds;
-    j["bandwidth"] = bandwidth;
+    j["bandwidth"] = round_digits(bandwidth, PREC);
   }
+
   if (frequency != 0) {
     j["frequency"] = frequency;
   }
