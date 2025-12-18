@@ -54,6 +54,9 @@ nlohmann::json Measurement::toJson() const {
 
   const double seconds = runtime * 1e-3;
 
+  if (gops != 0) {
+    j["gops"] = round_digits(gops, PREC);
+  }
   if (gops != 0 && runtime != 0) {
     const double tops = gops / seconds * 1e-3;
     j["tops"] = round_digits(tops, PREC);
@@ -68,6 +71,9 @@ nlohmann::json Measurement::toJson() const {
     j["efficiency"] = round_digits(efficiency, PREC);
   }
 
+  if (gbytes != 0) {
+    j["gbytes"] = round_digits(gbytes, PREC);
+  }
   if (gbytes != 0 && runtime != 0) {
     const double bandwidth = gbytes / seconds;
     j["bandwidth"] = round_digits(bandwidth, PREC);
@@ -78,4 +84,14 @@ nlohmann::json Measurement::toJson() const {
   }
 
   return j;
+}
+
+void to_json(nlohmann::json &j, const Measurement &m) { j = m.toJson(); }
+
+void from_json(const nlohmann::json &j, Measurement &m) {
+  m.runtime = j.value("runtime", 0.0);
+  m.power = j.value("power", 0.0);
+  m.frequency = j.value("frequency", 0);
+  m.gops = j.value("gops", 0.0);
+  m.gbytes = j.value("gbytes", 0.0);
 }

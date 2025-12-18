@@ -89,7 +89,7 @@ void Benchmark::report(const std::string &name, double gops, double gbytes,
     nlohmann::json obj;
     obj["name"] = name;
     obj.update(m.toJson());
-    std::cout << obj.dump() << "," << std::endl;
+    json_output_.push_back(obj);
   } else {
     std::cout << std::setw(w1) << std::string(name) << ": ";
     std::cout << std::setprecision(2) << std::fixed;
@@ -114,13 +114,18 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   stream_ = std::make_unique<cu::Stream>();
 
   if (enable_json_output_) {
+    json_output_ = nlohmann::json::array();
     nlohmann::json dev;
     dev["device_number"] = device_number;
     dev["device_name"] = device_->getName();
     dev["architecture"] = device_->getArch();
     dev["multi_processor_count"] = multiProcessorCount();
-    dev["clock_rate"] = clockRate() * 1e-6;
-    std::cout << "[\n" << dev.dump() << "," << std::endl;
+    {
+      const double cr = clockRate() * 1e-6; // GHz
+      const double cr_rounded = std::round(cr * 1000.0) / 1000.0; // 3 digits
+      dev["clock_rate"] = cr_rounded;
+    }
+    json_output_.push_back(dev);
   } else {
     std::cout << "Device " << device_number << ": " << device_->getName();
     std::cout << " (" << device_->getArch() << ", " << multiProcessorCount()
@@ -158,7 +163,7 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
 
 Benchmark::~Benchmark() {
   if (enable_json_output_) {
-    std::cout << "]" << std::endl;
+    std::cout << json_output_.dump(2) << std::endl;
   }
 }
 
