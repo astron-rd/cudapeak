@@ -9,13 +9,11 @@
 std::ostream &operator<<(std::ostream &stream, const Measurement &m) {
   auto j = m.toJson();
 
-  // runtime
   if (j.contains("runtime")) {
     stream << std::setw(w2) << j["runtime"].get<double>() << " ms";
   } else {
     stream << std::setw(w2) << m.runtime << " ms";
   }
-
   if (j.contains("tops")) {
     stream << ", " << std::setw(w2) << j["tops"].get<double>() << " TOps/s";
   }
@@ -52,6 +50,7 @@ nlohmann::json Measurement::toJson() const {
     j["runtime"] = runtime;
   }
 
+  // runtime (seconds)
   const double seconds = runtime * 1e-3;
 
   if (gops != 0) {
