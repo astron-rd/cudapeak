@@ -88,7 +88,7 @@ void Benchmark::report(const std::string &name, double gops, double gbytes,
   if (enable_json_output_) {
     nlohmann::json obj;
     obj["name"] = name;
-    m.toJson(obj);
+    obj.update(m.toJson());
     std::cout << obj.dump() << "," << std::endl;
   } else {
     std::cout << std::setw(w1) << std::string(name) << ": ";

@@ -6,89 +6,44 @@
 #include "Measurement.h"
 #include "common.h"
 
-void Measurement::print_runtime(std::ostream &stream, bool json) const {
-  if (json) {
-    stream << "\"runtime\": " << runtime << ", ";
-  } else {
-    stream << std::setw(w2) << runtime << " ms";
-  }
-}
-
-void Measurement::print_ops(std::ostream &stream, bool json) const {
-  const double seconds = runtime * 1e-3;
-  if (gops != 0) {
-    const double tops = gops / seconds * 1e-3;
-    if (json) {
-      stream << "\"tops\": " << tops;
-      if (power > 0 || gbytes > 0 || frequency > 0) {
-        stream << ", ";
-      }
-    } else {
-      stream << ", " << std::setw(w2) << tops << " TOps/s";
-    }
-  }
-}
-
-void Measurement::print_power(std::ostream &stream, bool json) const {
-  if (power > 1) {
-    if (json) {
-      stream << "\"power\": " << power << ", ";
-    } else {
-      stream << ", " << std::setw(w2) << power << " W";
-    }
-  }
-}
-
-void Measurement::print_efficiency(std::ostream &stream, bool json) const {
-  const double seconds = runtime * 1e-3;
-  if (gops != 0 && power > 1) {
-    const double efficiency = gops / seconds / power;
-    if (json) {
-      stream << "\"efficiency\": " << efficiency << ", ";
-    } else {
-      stream << ", " << std::setw(w2) << efficiency << " GOps/W";
-    }
-  }
-}
-
-void Measurement::print_bandwidth(std::ostream &stream, bool json) const {
-  const double seconds = runtime * 1e-3;
-  if (gbytes != 0) {
-    const double bandwidth = gbytes / seconds;
-    if (json) {
-      stream << "\"bandwidth\": " << bandwidth << ", ";
-    } else {
-      stream << ", " << std::setw(w2) << gbytes / seconds << " GB/s";
-    }
-  }
-}
-
-void Measurement::print_frequency(std::ostream &stream, bool json) const {
-  if (frequency != 0) {
-    if (json) {
-      stream << "\"frequency\": " << frequency;
-    } else {
-      stream << ", " << std::setw(w2) << frequency << " MHz";
-    }
-  }
-}
-
 std::ostream &operator<<(std::ostream &stream, const Measurement &m) {
-  m.print_runtime(stream);
-  m.print_ops(stream);
-  m.print_power(stream);
-  m.print_efficiency(stream);
-  m.print_bandwidth(stream);
-  m.print_frequency(stream);
+  auto j = m.toJson();
+
+  // runtime
+  if (j.contains("runtime")) {
+    stream << std::setw(w2) << j["runtime"].get<double>() << " ms";
+  } else {
+    stream << std::setw(w2) << m.runtime << " ms";
+  }
+
+  if (j.contains("tops")) {
+    stream << ", " << std::setw(w2) << j["tops"].get<double>() << " TOps/s";
+  }
+  if (j.contains("power")) {
+    stream << ", " << std::setw(w2) << j["power"].get<double>() << " W";
+  }
+  if (j.contains("efficiency")) {
+    stream << ", " << std::setw(w2) << j["efficiency"].get<double>()
+           << " GOps/W";
+  }
+  if (j.contains("bandwidth")) {
+    stream << ", " << std::setw(w2) << j["bandwidth"].get<double>() << " GB/s";
+  }
+  if (j.contains("frequency")) {
+    stream << ", " << std::setw(w2) << j["frequency"].get<int>() << " MHz";
+  }
+
   return stream;
 }
 
-void Measurement::toJson(nlohmann::json &j) const {
+nlohmann::json Measurement::toJson() const {
   auto round_digits = [](double v, int digits) {
     double f = std::pow(10.0, digits);
     return std::round(v * f) / f;
   };
   const int PREC = 3;
+
+  nlohmann::json j;
 
   // runtime (ms)
   if (runtime != 0) {
@@ -121,4 +76,6 @@ void Measurement::toJson(nlohmann::json &j) const {
   if (frequency != 0) {
     j["frequency"] = frequency;
   }
+
+  return j;
 }
