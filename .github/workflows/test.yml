@@ -8,7 +8,7 @@ jobs:
       matrix:
         include:
           - name: NVIDIA V100
-            partition: cbtq
+            partition: defq
             gres: gpu:V100
           - name: NVIDIA A4000
             partition: defq
@@ -28,12 +28,7 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            if [[ "$PARTITION_NAME" == cbtq ]]; then
-              source /etc/profile.d/modules.sh
-              module load spack/d4468dcc
-            else
-              module load spack/20250403
-            fi
+            module load spack/20251001-rocky8
             if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
