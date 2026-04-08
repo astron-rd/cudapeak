@@ -31,6 +31,7 @@ __device__ void mma_kernel(Tout *data) {
 
 #if __CUDA_ARCH__ >= 800
 #include "mma_m16n8k256_s32b1b1s32.cuh"
+#include "mma_m8n8k128_s32b1b1s32.cuh"
 #endif
 
 #if __CUDA_ARCH__ >= 750
@@ -98,8 +99,22 @@ __global__ void bmma_b1_16_8_256_xor(void *data) {
 
 __global__ void bmma_b1_8_8_128_and(void *data) {
 #if defined(ENABLE_INT1) && (__CUDA_ARCH__ >= 800)
-  bmma_kernel<experimental::precision::b1, experimental::precision::b1, int, 8,
-              8, 128, experimental::bmmaBitOpAND>((int *)data);
+  wmma::fragment<wmma::accumulator, 8, 8, 128, int> sum;
+  wmma::fragment<wmma::matrix_a, 8, 8, 128, experimental::precision::b1,
+                 wmma::row_major>
+      aFrag;
+  wmma::fragment<wmma::matrix_b, 8, 8, 128, experimental::precision::b1,
+                 wmma::col_major>
+      bFrag;
+  fill_fragment(sum, 0);
+  fill_fragment(aFrag, 0);
+  fill_fragment(bFrag, 0);
+  for (unsigned k = 0; k < REPEAT_COUNT; k++) {
+    bmma_m8n8k128_and_sync(sum, aFrag, bFrag, sum);
+    __syncwarp();
+  }
+  int *ptr = &((int *)data)[threadIdx.y * 8 * 8];
+  store_matrix_sync(ptr, sum, 8, wmma::mem_row_major);
 #endif
 }
 
