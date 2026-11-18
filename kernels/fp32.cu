@@ -4,7 +4,7 @@
 template <int nr_fp32> __device__ void fp32_8(float2 &a, float2 &b, float2 &c) {
 // Perform nr_fp32 * 4 fma
 #if defined(__HIP_PLATFORM_AMD__)
-  #pragma unroll 4
+#pragma unroll 4
   for (int i = 0; i < nr_fp32; i++) {
     float ax = a.x, ay = a.y;
     float bx = b.x, by = b.y;
