@@ -14,7 +14,7 @@ jobs:
             partition: defq
             gres: gpu:A4000
           - name: AMD W7700
-            partition: defq
+            partition: rbq
             gres: gpu:W7700
     env:
       DEVICE_NAME: ${{ matrix.name }}
@@ -30,7 +30,11 @@ jobs:
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
             module load spack/2026.10.06
             if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
-              module load cuda
+              if [[ "$DEVICE_NAME" == *V100* ]]; then
+                module load cuda/12.9.1
+              else
+                module load cuda
+              fi
               cmake_flags=""
               append_path=""
             else
