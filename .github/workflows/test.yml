@@ -28,7 +28,7 @@ jobs:
           time: "00:10:00"
           commands: |
             BUILD_DIR=$(mktemp -d -t build-XXXXXXXX)
-            module load spack/20251001-rocky8
+            module load spack/2026.10.06
             if [[ "$DEVICE_NAME" == NVIDIA* ]]; then
               module load cuda
               cmake_flags=""
