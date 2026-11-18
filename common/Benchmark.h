@@ -28,6 +28,7 @@ public:
   bool isAda();
   bool isHopper();
   bool isBlackwell();
+  bool isTegra();
 #endif
 
   cu::Device &getDevice() { return *device_; }

@@ -225,7 +225,16 @@ bool Benchmark::isBlackwell() {
   // This also matches sm_100a, sm_101a, and sm_120a
   return ((arch.find("sm_100") != std::string::npos) ||
           (arch.find("sm_101") != std::string::npos) ||
-          (arch.find("sm_120") != std::string::npos));
+          (arch.find("sm_110") != std::string::npos) ||
+          (arch.find("sm_120") != std::string::npos) ||
+          (arch.find("sm_121") != std::string::npos));
+}
+
+bool Benchmark::isTegra() {
+  const std::string arch(device_->getArch());
+  // Tegra Blackwell parts: Thor (sm_110) and GB10 (sm_121)
+  return ((arch.find("sm_110") != std::string::npos) ||
+          (arch.find("sm_121") != std::string::npos));
 }
 
 #endif
