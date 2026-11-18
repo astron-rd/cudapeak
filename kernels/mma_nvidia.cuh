@@ -45,7 +45,7 @@ template <>
 class wmma::fragment<wmma::accumulator, 16, 8, 32, float>
     : public __frag_base<float, 4> {};
 
-#if __CUDA_ARCH__ >= 1000
+#if __CUDA_ARCH__ == 1000 || __CUDA_ARCH__ == 1200
 #define ENABLE_FP4
 #include "mma_m16n8k64_f32f4f4f32.cuh"
 #include <cuda_fp4.h>
@@ -59,7 +59,8 @@ class wmma::fragment<wmma::accumulator, 16, 8, 32, float>
 #define ENABLE_BF16
 #endif
 
-#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 1200
+#if __CUDA_ARCH__ == 890 || __CUDA_ARCH__ == 900 || __CUDA_ARCH__ == 1100 ||   \
+    __CUDA_ARCH__ == 1200 || __CUDA_ARCH__ == 1210
 #define ENABLE_FP8
 #include "mma_m16n8k32_f32f8f8f32.cuh"
 #include <cuda_fp8.h>
