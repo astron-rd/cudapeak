@@ -19,7 +19,10 @@ KernelFactory::compileKernels(cu::Device &device,
   const std::string cuda_include_path = nvrtc::findIncludePath();
   std::string arch = device.getArch();
 
-  if (arch.compare("sm_120") == 0 || arch.compare("sm_121") == 0) {
+  // The "a" suffix enables architecture-specific instructions: FP4/FP6/FP8
+  // mma on sm_120/sm_121, tcgen05 on sm_110 (Thor).
+  if (arch.compare("sm_110") == 0 || arch.compare("sm_120") == 0 ||
+      arch.compare("sm_121") == 0) {
     arch += "a";
   }
 

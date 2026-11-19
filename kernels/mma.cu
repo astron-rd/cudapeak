@@ -11,4 +11,5 @@ inline __device__ unsigned laneid() {
 #include "mma_amd.hiph"
 #else
 #include "mma_nvidia.cuh"
+#include "mma_tcgen05.cuh"
 #endif

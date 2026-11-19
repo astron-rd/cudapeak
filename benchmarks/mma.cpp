@@ -26,6 +26,8 @@ int getBitSize(const std::string &kernel_name) {
     return 8;
   } else if (type == "e2m1") {
     return 4;
+  } else if (type == "tf32") {
+    return 32;
   }
 
   // Default case: try to extract number from type (e.g., "16" from "f16")
@@ -108,6 +110,18 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
     kernel_names.push_back("mma_e2m1_16_8_64");
     kernel_names.push_back("mma_e3m2_16_8_32");
   }
+
+  // On Thor, Blackwell tcgen05 (UMMA) kernels measure 2.6x-7.9x higher peak
+  // throughput than the warp-level mma.sync kernels above, and they are the
+  // only way to reach the hardware tensor-core peak on sm_110.
+  if (benchmark.isThor()) {
+    kernel_names.push_back("tcgen05_f16_128_128_64");
+    kernel_names.push_back("tcgen05_bf16_128_128_64");
+    kernel_names.push_back("tcgen05_tf32_128_128_32");
+    kernel_names.push_back("tcgen05_s8_128_128_128");
+    kernel_names.push_back("tcgen05_e4m3_128_128_128");
+    kernel_names.push_back("tcgen05_e5m2_128_128_128");
+  }
 #endif
 
   return sortKernelsByBitSize(kernel_names);
@@ -175,13 +189,27 @@ int main(int argc, const char *argv[]) {
 
   benchmark.allocate(sizeof_data);
 
+  // tcgen05 kernels: one CTA per SM, each CTA issues UMMA_REPEAT tile
+  // iterations of 4 atom steps against a single accumulator in TMEM. The
+  // constant UMMA_REPEAT must match kernels/mma_tcgen05.cuh.
+  const int umma_repeat = 20000;
+  const int umma_ctas = multiProcessorCount;
+  // One launch performs umma_ctas * umma_repeat tile iterations; a tile spans
+  // the full m*n*k work (the 4 atom steps per tile are already inside k).
+  const double umma_gops = 1e-9 * (double)umma_ctas * umma_repeat;
+
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     for (int j = 0; j < kernel_names.size(); j++) {
       const std::string &kernel_name = kernel_names[j];
       auto [m, n, k] = extractFragmentSizes(kernel_name);
-      benchmark.run(kernels[j], grid, block, kernel_name,
-                    gops * (m * n * k * 2), gbytes);
+      if (kernel_name.rfind("tcgen05_", 0) == 0) {
+        benchmark.run(kernels[j], dim3(umma_ctas), block, kernel_name,
+                      umma_gops * (m * n * k * 2), gbytes);
+      } else {
+        benchmark.run(kernels[j], grid, block, kernel_name,
+                      gops * (m * n * k * 2), gbytes);
+      }
     }
   }
 
