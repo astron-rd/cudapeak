@@ -19,7 +19,7 @@ KernelFactory::compileKernels(cu::Device &device,
   const std::string cuda_include_path = nvrtc::findIncludePath();
   std::string arch = device.getArch();
 
-  if (arch.compare("sm_120") == 0) {
+  if (arch.compare("sm_120") == 0 || arch.compare("sm_121") == 0) {
     arch += "a";
   }
 

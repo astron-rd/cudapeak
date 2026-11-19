@@ -225,7 +225,14 @@ bool Benchmark::isBlackwell() {
   // This also matches sm_100a, sm_101a, and sm_120a
   return ((arch.find("sm_100") != std::string::npos) ||
           (arch.find("sm_101") != std::string::npos) ||
-          (arch.find("sm_120") != std::string::npos));
+          (arch.find("sm_110") != std::string::npos) ||
+          (arch.find("sm_120") != std::string::npos) ||
+          (arch.find("sm_121") != std::string::npos));
+}
+
+bool Benchmark::isThor() {
+  const std::string arch(device_->getArch());
+  return (arch.find("sm_110") != std::string::npos);
 }
 
 #endif
