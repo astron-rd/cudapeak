@@ -9,6 +9,8 @@
 #include <nlohmann/json.hpp>
 
 #include "Benchmark.h"
+
+#include "Architecture.h"
 #include "Measurement.h"
 #include "common.h"
 
@@ -222,18 +224,12 @@ bool Benchmark::isHopper() {
 
 bool Benchmark::isBlackwell() {
   const std::string arch(device_->getArch());
-  // This also matches sm_100a, sm_101a, and sm_120a
-  return ((arch.find("sm_100") != std::string::npos) ||
-          (arch.find("sm_101") != std::string::npos) ||
-          (arch.find("sm_110") != std::string::npos) ||
-          (arch.find("sm_120") != std::string::npos) ||
-          (arch.find("sm_121") != std::string::npos));
+  // This also matches sm_100a, sm_110a, and sm_121a
+  return isBlackwellDatacenter(arch) || isBlackwellThor(arch) ||
+         isBlackwellConsumer(arch);
 }
 
-bool Benchmark::isThor() {
-  const std::string arch(device_->getArch());
-  return (arch.find("sm_110") != std::string::npos);
-}
+bool Benchmark::isThor() { return isBlackwellThor(device_->getArch()); }
 
 #endif
 

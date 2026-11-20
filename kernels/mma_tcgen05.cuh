@@ -2,8 +2,8 @@
 //
 // Blackwell's tcgen05 instruction family runs one MMA per SM from a single
 // issuing lane against SMEM descriptors, replacing warp-level mma.sync for
-// peak throughput measurement. On Thor tcgen05 is 2.6x-7.9x faster than the
-// warp-level kernels in mma_nvidia.cuh across tf32/f16/bf16/s8/fp8.
+// peak throughput measurement. On Thor tcgen05 has a much higher peak
+// throughput than the warp-level kernels in mma_nvidia.cuh.
 //
 // This header is self-contained inline PTX (no CUTLASS dependency) for the
 // plain atom kinds only. Block-scaled kinds (fp4/fp6) need scale factors
@@ -195,7 +195,7 @@ __device__ __forceinline__ void run(void *data) {
         "tcgen05.dealloc.cta_group::1.sync.aligned.b32 %0, 128;" ::"r"(tmem));
   }
   if (acc == 0xdeadbeefu) {
-    *(volatile unsigned *)data = acc;
+    *static_cast<volatile unsigned *>(data) = acc;
   }
 }
 

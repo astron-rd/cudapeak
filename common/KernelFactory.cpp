@@ -6,6 +6,7 @@
 #include <cudawrappers/cu.hpp>
 #include <cudawrappers/nvrtc.hpp>
 
+#include "Architecture.h"
 #include "KernelFactory.h"
 
 KernelFactory::KernelFactory(const std::string &kernel_source)
@@ -20,9 +21,8 @@ KernelFactory::compileKernels(cu::Device &device,
   std::string arch = device.getArch();
 
   // The "a" suffix enables architecture-specific instructions: FP4/FP6/FP8
-  // mma on sm_120/sm_121, tcgen05 on sm_110 (Thor).
-  if (arch.compare("sm_110") == 0 || arch.compare("sm_120") == 0 ||
-      arch.compare("sm_121") == 0) {
+  // mma on consumer Blackwell, tcgen05 on Thor.
+  if (isBlackwellThor(arch) || isBlackwellConsumer(arch)) {
     arch += "a";
   }
 
