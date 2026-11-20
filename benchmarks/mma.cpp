@@ -26,6 +26,8 @@ int getBitSize(const std::string &kernel_name) {
     return 8;
   } else if (type == "e2m1") {
     return 4;
+  } else if (type == "tf32") {
+    return 32;
   }
 
   // Default case: try to extract number from type (e.g., "16" from "f16")
@@ -108,6 +110,17 @@ std::vector<std::string> getSupportedKernels(Benchmark &benchmark) {
     kernel_names.push_back("mma_e2m1_16_8_64");
     kernel_names.push_back("mma_e3m2_16_8_32");
   }
+
+  // On Thor (sm_110), tcgen05 (UMMA) has a much higher peak throughput than
+  // the warp-level mma.sync kernels above.
+  if (benchmark.isThor()) {
+    kernel_names.push_back("tcgen05_f16_128_128_64");
+    kernel_names.push_back("tcgen05_bf16_128_128_64");
+    kernel_names.push_back("tcgen05_tf32_128_128_32");
+    kernel_names.push_back("tcgen05_s8_128_128_128");
+    kernel_names.push_back("tcgen05_e4m3_128_128_128");
+    kernel_names.push_back("tcgen05_e5m2_128_128_128");
+  }
 #endif
 
   return sortKernelsByBitSize(kernel_names);
@@ -169,18 +182,31 @@ int main(int argc, const char *argv[]) {
 
   // Amount of work performed
   int nr_iterations = 32768;
-  const double gops =
+  const double gops_mma =
       1e-9 * nr_iterations * nr_warps_per_thread_block * nr_thread_blocks;
   const double gbytes = 0;
 
   benchmark.allocate(sizeof_data);
+
+  // tcgen05 kernels run one CTA per SM and issue umma_repeat tile iterations
+  // into a single TMEM accumulator. umma_repeat must match
+  // kernels/mma_tcgen05.cuh.
+  const int umma_repeat = 20000;
+  const int umma_ctas = multiProcessorCount;
+  const double gops_umma = 1e-9 * static_cast<double>(umma_ctas) * umma_repeat;
 
   // Run benchmark
   for (int i = 0; i < benchmark.nrBenchmarks(); i++) {
     for (int j = 0; j < kernel_names.size(); j++) {
       const std::string &kernel_name = kernel_names[j];
       auto [m, n, k] = extractFragmentSizes(kernel_name);
-      benchmark.run(kernels[j], grid, block, kernel_name,
+      double gops = gops_mma;
+      dim3 launch_grid = grid;
+      if (kernel_name.rfind("tcgen05_", 0) == 0) {
+        gops = gops_umma;
+        launch_grid = dim3(umma_ctas);
+      }
+      benchmark.run(kernels[j], launch_grid, block, kernel_name,
                     gops * (m * n * k * 2), gbytes);
     }
   }
