@@ -47,7 +47,10 @@ if(BUILD_WITH_PMT)
     set(PMT_BUILD_TEGRA ON)
   endif()
   set(PMT_CUDAWRAPPERS_API ON)
-  FetchContent_Declare(pmt GIT_REPOSITORY https://git.astron.nl/RD/pmt)
+  FetchContent_Declare(
+    pmt
+    GIT_REPOSITORY https://git.astron.nl/RD/pmt
+    GIT_TAG main)
   FetchContent_MakeAvailable(pmt)
   add_compile_definitions("HAVE_PMT")
 endif()
