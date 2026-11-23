@@ -1,5 +1,6 @@
 #include <cassert>
 #include <iostream>
+#include <stdexcept>
 #include <string>
 #include <thread>
 
@@ -143,20 +144,25 @@ Benchmark::Benchmark(int argc, const char *argv[]) {
   }
 
   kernel_runner_ = std::make_unique<KernelRunner>(*device_, *context_);
+  try {
 #if defined(HAVE_PMT)
-  if (results["measure_power"].as<bool>()) {
-    const unsigned benchmark_duration =
-        results["benchmark_duration"].as<unsigned>();
-    kernel_runner_->enable_power_measurement(benchmark_duration);
-  }
+    if (results["measure_power"].as<bool>()) {
+      const unsigned benchmark_duration =
+          results["benchmark_duration"].as<unsigned>();
+      kernel_runner_->enable_power_measurement(benchmark_duration);
+    }
 #endif
 #if defined(HAVE_FMT)
-  if (results["measure_frequency"].as<bool>()) {
-    const unsigned benchmark_duration =
-        results["benchmark_duration"].as<unsigned>();
-    kernel_runner_->enable_frequency_measurement(benchmark_duration);
-  }
+    if (results["measure_frequency"].as<bool>()) {
+      const unsigned benchmark_duration =
+          results["benchmark_duration"].as<unsigned>();
+      kernel_runner_->enable_frequency_measurement(benchmark_duration);
+    }
 #endif
+  } catch (const std::runtime_error &e) {
+    std::cerr << "Error: " << e.what() << std::endl;
+    exit(EXIT_FAILURE);
+  }
 }
 
 Benchmark::~Benchmark() {

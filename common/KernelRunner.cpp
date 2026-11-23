@@ -6,39 +6,61 @@
 #include <fmt/fmt.h>
 #endif
 
+#include <stdexcept>
+#include <string>
+
 #include "KernelRunner.h"
 #include "Measurement.h"
 
 class KernelRunner::Impl {
 public:
   Impl(cu::Device &device, cu::Context &context)
-      : device_(device), context_(context) {
+      : device_(device), context_(context) {}
+
 #if defined(HAVE_PMT)
-#if defined(__HIP_PLATFORM_AMD__)
-    pm_ = pmt::amdsmi::AMDSMI::Create(0);
-#else
-    pm_ = pmt::nvidia::NVIDIA::Create(device_);
-#endif
-#endif
-
-#if defined(HAVE_FMT)
-#if defined(__HIP_PLATFORM_AMD__)
-    fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(0);
-#else
-    fm_ = std::make_unique<fmt::nvidia::NVIDIA>(device_);
-#endif
-#endif
-  }
-
   void enable_power_measurement(unsigned int benchmark_duration) {
+    // Sensors are created (and verified) only on request, so unsupported
+    // hardware only matters when the user asks for the measurement.
+    try {
+#if defined(__HIP_PLATFORM_AMD__)
+      pm_ = pmt::amdsmi::AMDSMI::Create(0);
+#else
+      pm_ = pmt::nvidia::NVIDIA::Create(device_);
+#endif
+      pm_->Read(); // fails here if the device reports no power
+    } catch (const std::exception &e) {
+      pm_.reset(); // stop the sensor thread before the caller exits
+      throw std::runtime_error(
+          std::string("Power sensor not available on this device: ") +
+          e.what());
+    }
     measure_power_ = true;
     benchmark_duration_ = benchmark_duration;
   }
+#endif
 
+#if defined(HAVE_FMT)
   void enable_frequency_measurement(unsigned int benchmark_duration) {
+    try {
+#if defined(__HIP_PLATFORM_AMD__)
+      fm_ = std::make_unique<fmt::amdsmi::AMDSMI>(0);
+      // FMT reports 0 when the clock cannot be read
+      if (fm_->get()[0] <= 0) {
+        throw std::runtime_error("the clock reads 0 MHz");
+      }
+#else
+      fm_ = std::make_unique<fmt::nvidia::NVIDIA>(device_);
+#endif
+    } catch (const std::exception &e) {
+      fm_.reset(); // stop the sensor thread before the caller exits
+      throw std::runtime_error(
+          std::string("Frequency sensor not available on this device: ") +
+          e.what());
+    }
     measure_frequency_ = true;
     benchmark_duration_ = benchmark_duration;
   }
+#endif
 
   bool measure_continuous() {
     bool result = false;
