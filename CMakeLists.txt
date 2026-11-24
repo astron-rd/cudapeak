@@ -12,9 +12,24 @@ FetchContent_Declare(
   GIT_TAG v3.2.0)
 FetchContent_MakeAvailable(cxxopts)
 
+# Unless BUILD_WITH_HIP is given explicitly, default to building for AMD (HIP)
+# when no CUDA toolkit is found and a HIP compiler is available.
+set(BUILD_WITH_HIP_DEFAULT OFF)
+if(NOT DEFINED BUILD_WITH_HIP)
+  find_package(CUDAToolkit QUIET)
+  if(NOT CUDAToolkit_FOUND)
+    include(CheckLanguage)
+    check_language(HIP)
+    if(CMAKE_HIP_COMPILER)
+      message(STATUS "CUDA not found, but HIP is: defaulting BUILD_WITH_HIP to ON")
+      set(BUILD_WITH_HIP_DEFAULT ON)
+    endif()
+  endif()
+endif()
+
+option(BUILD_WITH_HIP "Build with HIP (default: auto-detect)" ${BUILD_WITH_HIP_DEFAULT})
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 option(BUILD_WITH_FMT "Build with Frequency Measurement Toolkit support" OFF)
-option(BUILD_WITH_HIP "Build with HIP")
 
 if(BUILD_WITH_HIP)
   set(CUDAWRAPPERS_BACKEND "HIP")
