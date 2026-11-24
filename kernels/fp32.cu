@@ -1,15 +1,7 @@
+#include "opaque.h"
+
 #define nr_outer 4096
 #define nr_inner 1024
-
-#if defined(__HIP_PLATFORM_AMD__)
-// Hide a value from the optimizer. Without this, b and c are compile-time
-// constants, so the products fold away and -ffast-math then collapses the loop
-// into a handful of adds, which makes the reported throughput meaningless.
-__device__ __forceinline__ float opaque(float x) {
-  asm volatile("" : "+v"(x));
-  return x;
-}
-#endif
 
 template <int nr_fp32> __device__ void fp32_8(float2 &a, float2 &b, float2 &c) {
 // Perform nr_fp32 * 4 fma

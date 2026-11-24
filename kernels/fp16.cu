@@ -3,20 +3,10 @@
 #endif
 
 #include "fp16.h"
+#include "opaque.h"
 
 #define nr_outer 4096
 #define nr_inner 1024
-
-#if defined(__HIP_PLATFORM_AMD__)
-// Hide a value from the optimizer. Without this, b and c are compile-time
-// constants, so the products fold away and -ffast-math then collapses the loop
-// into packed adds, which makes the reported throughput meaningless.
-__device__ __forceinline__ half opaque(half x) {
-  unsigned bits = __half_as_ushort(x);
-  asm volatile("" : "+v"(bits));
-  return __ushort_as_half(bits);
-}
-#endif
 
 template <int nr_fp16> __device__ void fp16_8(half2 &a, half2 &b, half2 &c) {
 // Perform nr_fp16 * 4 fma
