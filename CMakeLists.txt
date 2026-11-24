@@ -21,13 +21,15 @@ if(NOT DEFINED BUILD_WITH_HIP)
     include(CheckLanguage)
     check_language(HIP)
     if(CMAKE_HIP_COMPILER)
-      message(STATUS "CUDA not found, but HIP is: defaulting BUILD_WITH_HIP to ON")
+      message(
+        STATUS "CUDA not found, but HIP is: defaulting BUILD_WITH_HIP to ON")
       set(BUILD_WITH_HIP_DEFAULT ON)
     endif()
   endif()
 endif()
 
-option(BUILD_WITH_HIP "Build with HIP (default: auto-detect)" ${BUILD_WITH_HIP_DEFAULT})
+option(BUILD_WITH_HIP "Build with HIP (default: auto-detect)"
+       ${BUILD_WITH_HIP_DEFAULT})
 option(BUILD_WITH_PMT "Build with Power Measurement Toolkit support" OFF)
 option(BUILD_WITH_FMT "Build with Frequency Measurement Toolkit support" OFF)
 
