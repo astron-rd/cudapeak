@@ -1,12 +1,28 @@
+#include "opaque.h"
+
 #define nr_outer 4096
 #define nr_inner 1024
 
 template <int nr_int32> __device__ void int32_8(int2 &a, int2 &b, int2 &c) {
 // Perform nr_int32 * 4 imad
 #if defined(__HIP_PLATFORM_AMD__)
+  // Each mad multiplies the accumulator, see the other branch. The arithmetic
+  // is unsigned, so that it wraps instead of overflowing.
+  b.x = opaque(b.x);
+  b.y = opaque(b.y);
+  c.x = opaque(c.x);
+  c.y = opaque(c.y);
+  unsigned a_x = a.x, a_y = a.y;
+  const unsigned b_x = b.x, b_y = b.y, c_x = c.x, c_y = c.y;
+#pragma unroll 4
   for (int i = 0; i < nr_int32; i++) {
-    __asm__ __volatile__("v_mad_i32_i24 v0, v1, v2, v0\n" ::: "v0", "v1", "v2");
+    a_x = a_x * b_x + c_x;
+    a_x = a_x * b_y + c_y;
+    a_y = a_y * b_x + c_y;
+    a_y = a_y * b_y + c_x;
   }
+  a.x = a_x;
+  a.y = a_y;
 #else
   // Each mad multiplies the accumulator, so the chain cannot be rewritten into
   // adds of loop-invariant products (ptxas does this to a += b * c, which made

@@ -21,6 +21,11 @@ __device__ __forceinline__ float opaque(float x) {
   return x;
 }
 
+__device__ __forceinline__ int opaque(int x) {
+  asm volatile("" : "+v"(x));
+  return x;
+}
+
 __device__ __forceinline__ half opaque(half x) {
   unsigned bits = __half_as_ushort(x);
   asm volatile("" : "+v"(bits));
