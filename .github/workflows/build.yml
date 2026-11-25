@@ -1,10 +1,14 @@
 name: build
 on:
   push:
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 jobs:
   build-cuda:
     name: CUDA ${{ matrix.CUDA_IMAGE }}
     runs-on: [docker]
+    timeout-minutes: 30
     strategy:
       matrix:
         CUDA_IMAGE: ["nvidia/cuda:12.8.1-devel-ubuntu24.04"]
@@ -17,6 +21,7 @@ jobs:
   build-rocm:
     name: ROCm ${{ matrix.ROCM_IMAGE }}
     runs-on: [docker]
+    timeout-minutes: 30
     strategy:
       matrix:
         ROCM_IMAGE: ["rocm/dev-ubuntu-24.04:6.4"]
