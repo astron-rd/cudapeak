@@ -18,14 +18,17 @@
 
 __shared__ float s_cosisin_table[NR_ENTRIES];
 
-__device__ void cosisin_init(float *lookup) {
-  for (unsigned i = 0; i < NR_ENTRIES; i++) {
-    lookup[i] = sinf(i * (TWO_PI / TWO_PI_INT));
+// Fill the table, called by all threads of the block
+__device__ void cosisin_init() {
+  for (unsigned i = threadIdx.x; i < NR_ENTRIES; i += blockDim.x) {
+    s_cosisin_table[i] = sinf(i * (TWO_PI / TWO_PI_INT));
   }
+  __syncthreads();
 }
 
 inline __device__ void cosisin(const float x, float *sin, float *cos) {
-  unsigned index = __float2uint_rn(x * (TWO_PI_INT / TWO_PI));
+  // Signed, so that negative angles wrap around
+  unsigned index = __float2int_rn(x * (TWO_PI_INT / TWO_PI));
   index &= (TWO_PI_INT - 1);
   *cos = s_cosisin_table[(index + HLF_PI_INT) & (TWO_PI_INT - 1)];
   *sin = s_cosisin_table[index];
