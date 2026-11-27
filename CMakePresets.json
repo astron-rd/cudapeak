@@ -1,0 +1,176 @@
+{
+  "version": 6,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 25,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build-${presetName}"
+    },
+    {
+      "name": "measure",
+      "hidden": true,
+      "cacheVariables": {
+        "BUILD_WITH_PMT": "ON",
+        "BUILD_WITH_FMT": "ON"
+      }
+    },
+    {
+      "name": "cuda",
+      "displayName": "CUDA",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_WITH_HIP": "OFF"
+      }
+    },
+    {
+      "name": "hip",
+      "displayName": "HIP",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_WITH_HIP": "ON"
+      }
+    },
+    {
+      "name": "cuda-measure",
+      "displayName": "CUDA with power and frequency measurement",
+      "inherits": [
+        "cuda",
+        "measure"
+      ]
+    },
+    {
+      "name": "hip-measure",
+      "displayName": "HIP with power and frequency measurement",
+      "inherits": [
+        "hip",
+        "measure"
+      ]
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "hip",
+      "configurePreset": "hip"
+    },
+    {
+      "name": "cuda-measure",
+      "configurePreset": "cuda-measure"
+    },
+    {
+      "name": "hip-measure",
+      "configurePreset": "hip-measure"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "cuda",
+      "inherits": "base",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "hip",
+      "inherits": "base",
+      "configurePreset": "hip"
+    },
+    {
+      "name": "cuda-measure",
+      "inherits": "base",
+      "configurePreset": "cuda-measure"
+    },
+    {
+      "name": "hip-measure",
+      "inherits": "base",
+      "configurePreset": "hip-measure"
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "cuda",
+      "displayName": "Configure, build and run the benchmarks (CUDA)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda"
+        },
+        {
+          "type": "build",
+          "name": "cuda"
+        },
+        {
+          "type": "test",
+          "name": "cuda"
+        }
+      ]
+    },
+    {
+      "name": "hip",
+      "displayName": "Configure, build and run the benchmarks (HIP)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip"
+        },
+        {
+          "type": "build",
+          "name": "hip"
+        },
+        {
+          "type": "test",
+          "name": "hip"
+        }
+      ]
+    },
+    {
+      "name": "cuda-measure",
+      "displayName": "Configure, build and run the benchmarks (CUDA, with measurement)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda-measure"
+        },
+        {
+          "type": "build",
+          "name": "cuda-measure"
+        },
+        {
+          "type": "test",
+          "name": "cuda-measure"
+        }
+      ]
+    },
+    {
+      "name": "hip-measure",
+      "displayName": "Configure, build and run the benchmarks (HIP, with measurement)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip-measure"
+        },
+        {
+          "type": "build",
+          "name": "hip-measure"
+        },
+        {
+          "type": "test",
+          "name": "hip-measure"
+        }
+      ]
+    }
+  ]
+}
