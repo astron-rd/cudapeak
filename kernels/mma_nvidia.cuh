@@ -1,8 +1,45 @@
+#include <cuda_bf16.h>
 #include <mma.h>
 
 using namespace nvcuda;
 
+// Integers: any bits are a valid value. This includes the packed storage of
+// the 4-bit and 1-bit fragments.
+template <typename T>
+__device__ void set_random(T &dst, unsigned tag, unsigned index) {
+  dst = static_cast<T>(random_bits(tag, index));
+}
+
+__device__ void set_random(half &dst, unsigned tag, unsigned index) {
+  dst = __float2half(random_float(tag, index));
+}
+
+__device__ void set_random(__nv_bfloat16 &dst, unsigned tag, unsigned index) {
+  dst = __float2bfloat16(random_float(tag, index));
+}
+
+__device__ void set_random(float &dst, unsigned tag, unsigned index) {
+  dst = random_float(tag, index);
+}
+
+template <typename Fragment>
+__device__ void fill_random(Fragment &frag, unsigned tag) {
+  for (unsigned i = 0; i < sizeof(frag.x) / sizeof(frag.x[0]); i++) {
+    set_random(frag.x[i], tag, i);
+  }
+}
+
+// The input matrices are filled with random data. The fp8, fp6 and fp4 kernels
+// use START_ZERO, random bits are not valid values for those formats.
 #define START                                                                  \
+  wmma::fragment<wmma::accumulator, M, N, K, Tout> sum;                        \
+  wmma::fragment<wmma::matrix_a, M, N, K, Ta, wmma::row_major> aFrag;          \
+  wmma::fragment<wmma::matrix_b, M, N, K, Tb, wmma::col_major> bFrag;          \
+  fill_fragment(sum, 0);                                                       \
+  fill_random(aFrag, 1);                                                       \
+  fill_random(bFrag, 2);                                                       \
+  for (unsigned k = 0; k < REPEAT_COUNT; k++) {
+#define START_ZERO                                                             \
   wmma::fragment<wmma::accumulator, M, N, K, Tout> sum;                        \
   wmma::fragment<wmma::matrix_a, M, N, K, Ta, wmma::row_major> aFrag;          \
   wmma::fragment<wmma::matrix_b, M, N, K, Tb, wmma::col_major> bFrag;          \
@@ -74,6 +111,14 @@ __device__ void mma_kernel_ptx(Tout *data) {
   END
 }
 
+template <typename Ta, typename Tb, typename Tout, unsigned M, unsigned N,
+          unsigned K>
+__device__ void mma_kernel_ptx_zero(Tout *data) {
+  START_ZERO
+  mma_sync_ptx(sum, aFrag, bFrag, sum);
+  END
+}
+
 #if defined(ENABLE_INT1)
 template <typename Ta, typename Tb, typename Tout, unsigned M, unsigned N,
           unsigned K, experimental::bmmaBitOp bitOp>
@@ -108,8 +153,8 @@ __global__ void bmma_b1_8_8_128_and(void *data) {
                  wmma::col_major>
       bFrag;
   fill_fragment(sum, 0);
-  fill_fragment(aFrag, 0);
-  fill_fragment(bFrag, 0);
+  fill_random(aFrag, 1);
+  fill_random(bFrag, 2);
   for (unsigned k = 0; k < REPEAT_COUNT; k++) {
     bmma_m8n8k128_and_sync(sum, aFrag, bFrag, sum);
     __syncwarp();
@@ -163,24 +208,28 @@ __global__ void mma_tf32_16_16_8(void *data) {
 
 __global__ void mma_e4m3_16_8_32(void *data) {
 #if defined(ENABLE_FP8)
-  mma_kernel_ptx<__nv_fp8_e4m3, __nv_fp8_e4m3, float, 16, 8, 32>((float *)data);
+  mma_kernel_ptx_zero<__nv_fp8_e4m3, __nv_fp8_e4m3, float, 16, 8, 32>(
+      (float *)data);
 #endif
 }
 
 __global__ void mma_e5m2_16_8_32(void *data) {
 #if defined(ENABLE_FP8)
-  mma_kernel_ptx<__nv_fp8_e5m2, __nv_fp8_e5m2, float, 16, 8, 32>((float *)data);
+  mma_kernel_ptx_zero<__nv_fp8_e5m2, __nv_fp8_e5m2, float, 16, 8, 32>(
+      (float *)data);
 #endif
 }
 
 __global__ void mma_e2m1_16_8_64(void *data) {
 #if defined(ENABLE_FP4)
-  mma_kernel_ptx<__nv_fp4_e2m1, __nv_fp4_e2m1, float, 16, 8, 64>((float *)data);
+  mma_kernel_ptx_zero<__nv_fp4_e2m1, __nv_fp4_e2m1, float, 16, 8, 64>(
+      (float *)data);
 #endif
 }
 
 __global__ void mma_e3m2_16_8_32(void *data) {
 #if defined(ENABLE_FP6)
-  mma_kernel_ptx<__nv_fp6_e3m2, __nv_fp6_e2m3, float, 16, 8, 32>((float *)data);
+  mma_kernel_ptx_zero<__nv_fp6_e3m2, __nv_fp6_e2m3, float, 16, 8, 32>(
+      (float *)data);
 #endif
 }
