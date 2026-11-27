@@ -1,5 +1,10 @@
 file(GLOB BENCHMARK_SOURCES *.cpp)
 
+# 24-bit integer multiply-add is an AMD instruction
+if(NOT BUILD_WITH_HIP)
+  list(FILTER BENCHMARK_SOURCES EXCLUDE REGEX "/int24\\.cpp$")
+endif()
+
 foreach(source_file ${BENCHMARK_SOURCES})
   get_filename_component(EXECUTABLE_NAME ${source_file} NAME_WE)
   get_filename_component(kernel_file ${EXECUTABLE_NAME}.cu NAME)

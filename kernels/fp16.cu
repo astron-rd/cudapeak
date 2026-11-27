@@ -3,6 +3,7 @@
 #endif
 
 #include "fp16.h"
+#include "opaque.h"
 
 #define nr_outer 4096
 #define nr_inner 1024
@@ -10,11 +11,16 @@
 template <int nr_fp16> __device__ void fp16_8(half2 &a, half2 &b, half2 &c) {
 // Perform nr_fp16 * 4 fma
 #if defined(__HIP_PLATFORM_AMD__)
+  b.x = opaque(b.x);
+  b.y = opaque(b.y);
+  c.x = opaque(c.x);
+  c.y = opaque(c.y);
+#pragma unroll 4
   for (int i = 0; i < nr_fp16; i++) {
-    a.x += b.x * c.x;
-    a.x += -b.y * c.y;
-    a.y += b.x * c.y;
-    a.y += b.y * c.x;
+    a.x = __hfma(b.x, c.x, a.x);
+    a.x = __hfma(-b.y, c.y, a.x);
+    a.y = __hfma(b.x, c.y, a.y);
+    a.y = __hfma(b.y, c.x, a.y);
   }
 #else
   short a_x = __half_as_short(a.x);

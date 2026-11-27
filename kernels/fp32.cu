@@ -1,16 +1,21 @@
+#include "opaque.h"
+
 #define nr_outer 4096
 #define nr_inner 1024
 
 template <int nr_fp32> __device__ void fp32_8(float2 &a, float2 &b, float2 &c) {
 // Perform nr_fp32 * 4 fma
 #if defined(__HIP_PLATFORM_AMD__)
+  b.x = opaque(b.x);
+  b.y = opaque(b.y);
+  c.x = opaque(c.x);
+  c.y = opaque(c.y);
 #pragma unroll 4
   for (int i = 0; i < nr_fp32; i++) {
-    float ax = a.x, ay = a.y;
-    float bx = b.x, by = b.y;
-    float cx = c.x, cy = c.y;
-    a.x = ax + bx * cx + (-by) * cy;
-    a.y = ay + bx * cy + by * cx;
+    a.x = __builtin_fmaf(b.x, c.x, a.x);
+    a.x = __builtin_fmaf(-b.y, c.y, a.x);
+    a.y = __builtin_fmaf(b.x, c.y, a.y);
+    a.y = __builtin_fmaf(b.y, c.x, a.y);
   }
 #else
 #pragma unroll nr_fp32
