@@ -16,7 +16,14 @@ cmake --preset hip          # or cuda
 cmake --build --preset hip -j
 ```
 
-Extra options can be added to the first command, for example `cmake --preset hip -DBUILD_WITH_PMT=ON`.
+The presets `cuda-measure` and `hip-measure` also enable `BUILD_WITH_PMT` and `BUILD_WITH_FMT` (see the options below), in their own build directory (`build-hip-measure`).
+
+Extra options can be added to the first command, for example `cmake --preset hip -DBUILD_WITH_PMT=ON`. `cmake --workflow` does not accept options, but a configured build directory keeps its options, so configure once with the options and use the workflow afterwards:
+
+```
+cmake --preset hip -DBUILD_WITH_PMT=ON
+cmake --workflow --preset hip
+```
 
 Every benchmark is also registered as a CTest test that runs it for one iteration, as a smoke test (it needs a GPU, the tests are labeled `gpu`, and they always run one at a time, also with `ctest -j`, because benchmarks disturb each other when they share a GPU). With CMake 3.25 or newer one command configures, builds and tests:
 
