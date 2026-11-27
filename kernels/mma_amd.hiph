@@ -13,7 +13,46 @@ struct hip_fp8_e4m3;
 struct hip_fp8_e5m2;
 #endif
 
+// Integers: any bits are a valid value
+template <typename T>
+__device__ void set_random(T &dst, unsigned tag, unsigned index) {
+  dst = static_cast<T>(random_bits(tag, index));
+}
+
+__device__ void set_random(half &dst, unsigned tag, unsigned index) {
+  dst = __float2half(random_float(tag, index));
+}
+
+__device__ void set_random(hip_bfloat16 &dst, unsigned tag, unsigned index) {
+  dst = static_cast<hip_bfloat16>(random_float(tag, index));
+}
+
+__device__ void set_random(float &dst, unsigned tag, unsigned index) {
+  dst = random_float(tag, index);
+}
+
+__device__ void set_random(double &dst, unsigned tag, unsigned index) {
+  dst = random_float(tag, index);
+}
+
+template <typename Fragment>
+__device__ void fill_random(Fragment &frag, unsigned tag) {
+  for (unsigned i = 0; i < Fragment::num_elements; i++) {
+    set_random(frag[i], tag, i);
+  }
+}
+
+// The input matrices are filled with random data. Kernels whose fragments do
+// not support element access use START_ZERO.
 #define START                                                                  \
+  wmma::fragment<wmma::accumulator, M, N, K, Tout> sum;                        \
+  wmma::fragment<wmma::matrix_a, M, N, K, Tmma, wmma::row_major> aFrag;        \
+  wmma::fragment<wmma::matrix_b, M, N, K, Tmma, wmma::col_major> bFrag;        \
+  fill_fragment(sum, static_cast<Tout>(0));                                    \
+  fill_random(aFrag, 1);                                                       \
+  fill_random(bFrag, 2);                                                       \
+  for (unsigned k = 0; k < REPEAT_COUNT; k++) {
+#define START_ZERO                                                             \
   wmma::fragment<wmma::accumulator, M, N, K, Tout> sum;                        \
   wmma::fragment<wmma::matrix_a, M, N, K, Tmma, wmma::row_major> aFrag;        \
   wmma::fragment<wmma::matrix_b, M, N, K, Tmma, wmma::col_major> bFrag;        \
@@ -40,7 +79,7 @@ __device__ void mma_kernel(Tout *data) {
 template <typename Tin, typename Tmma, typename Tout, unsigned M, unsigned N,
           unsigned K>
 __device__ void mma_kernel_llvm(Tout *data) {
-  START
+  START_ZERO
   mma_sync_llvm(sum, aFrag, bFrag, sum);
   END
 }
