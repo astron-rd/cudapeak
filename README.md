@@ -9,6 +9,15 @@ cmake -S . -B build
 cmake --build build
 ```
 
+With CMake 3.21 or newer the presets in `CMakePresets.json` do the same and keep a build directory per configuration (`build-<preset>`), which is handy when the same checkout is built for both CUDA and HIP:
+
+```
+cmake --preset hip          # or cuda
+cmake --build --preset hip -j
+```
+
+Extra options can be added to the first command, for example `cmake --preset hip -DBUILD_WITH_PMT=ON`.
+
 Options:
 
 | Option | Description |

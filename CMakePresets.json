@@ -1,0 +1,41 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 21,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "base",
+      "hidden": true,
+      "binaryDir": "${sourceDir}/build-${presetName}"
+    },
+    {
+      "name": "cuda",
+      "displayName": "CUDA",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_WITH_HIP": "OFF"
+      }
+    },
+    {
+      "name": "hip",
+      "displayName": "HIP",
+      "inherits": "base",
+      "cacheVariables": {
+        "BUILD_WITH_HIP": "ON"
+      }
+    }
+  ],
+  "buildPresets": [
+    {
+      "name": "cuda",
+      "configurePreset": "cuda"
+    },
+    {
+      "name": "hip",
+      "configurePreset": "hip"
+    }
+  ]
+}
