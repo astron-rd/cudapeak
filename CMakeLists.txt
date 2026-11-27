@@ -88,5 +88,7 @@ if(BUILD_WITH_FMT)
   add_compile_definitions("HAVE_FMT")
 endif()
 
+enable_testing()
+
 add_subdirectory(common)
 add_subdirectory(benchmarks)

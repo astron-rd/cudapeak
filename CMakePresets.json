@@ -1,8 +1,8 @@
 {
-  "version": 3,
+  "version": 6,
   "cmakeMinimumRequired": {
     "major": 3,
-    "minor": 21,
+    "minor": 25,
     "patch": 0
   },
   "configurePresets": [
@@ -36,6 +36,60 @@
     {
       "name": "hip",
       "configurePreset": "hip"
+    }
+  ],
+  "testPresets": [
+    {
+      "name": "cuda",
+      "configurePreset": "cuda",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "hip",
+      "configurePreset": "hip",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
+  ],
+  "workflowPresets": [
+    {
+      "name": "cuda",
+      "displayName": "Configure, build and run the benchmarks (CUDA)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "cuda"
+        },
+        {
+          "type": "build",
+          "name": "cuda"
+        },
+        {
+          "type": "test",
+          "name": "cuda"
+        }
+      ]
+    },
+    {
+      "name": "hip",
+      "displayName": "Configure, build and run the benchmarks (HIP)",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "hip"
+        },
+        {
+          "type": "build",
+          "name": "hip"
+        },
+        {
+          "type": "test",
+          "name": "hip"
+        }
+      ]
     }
   ]
 }
